@@ -131,7 +131,7 @@ bool dfs(vector< vector<char> > &board, vector< vector<bool> > &row,
     if (r == -1 || c == -1) {
         return true;
     }
-    cout << "(" << r << "," << c << ")" << endl;
+    // cout << "(" << r << "," << c << ")" << endl;
     for (int num = 0; num < size; num++) {
         // cout << "checking " << num + 1 << endl;
         if (check(row, col, box, r, c, num)) {
@@ -193,8 +193,8 @@ bool init(const vector< vector<char> > &board, vector< vector<bool> > &row,
 }
 
 int main() {
-    size = 9;
-    root = 3;
+    size = 16;
+    root = 4;
     vector< vector<char> > board = emptyGrid(size);
     auto startTime = high_resolution_clock::now();
     vector< vector<bool> > row(size, vector<bool>(size));
