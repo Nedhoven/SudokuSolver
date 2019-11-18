@@ -1,6 +1,7 @@
 
 package solver;
 
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Set;
@@ -18,6 +19,12 @@ public class Optimized implements SolverInterface {
     private final Map<Integer, Set<Integer>> box;
     private final Map<Integer, Set<Integer>> emptyRow;
     private final Map<Integer, Set<Integer>> emptyCol;
+
+//    private final Map<Integer, Map<Integer, Integer>> rowFreq;
+//    private final Map<Integer, Map<Integer, Integer>> colFreq;
+//    private final Map<Integer, Map<Integer, Integer>> boxFreq;
+
+    private ArrayList<ArrayList<Set<Integer>>> domain;
 
     private Integer reccalls = 0;
     private Integer maxRecdepth = 0;
@@ -40,6 +47,19 @@ public class Optimized implements SolverInterface {
             map.put(index, new HashSet<Integer>());
         }
     }
+
+    private void fillDomain() {
+        domain = new ArrayList<ArrayList<Set<Integer>>>();
+        for (int i = 0; i < size; i++) {
+            domain.add(new ArrayList<Set<Integer>>());
+            for (int j = 0; j < size; j++) {
+                domain.get(i).add(new HashSet<Integer>());
+                for (int num = 0; num < size; num++) {
+                    domain.get(i).get(j).add(num);
+                }
+            }
+        }
+    }
     
     public Optimized(int n) {
         size = n;
@@ -56,10 +76,13 @@ public class Optimized implements SolverInterface {
         create(emptyRow);
         emptyCol = new HashMap<Integer, Set<Integer>>();
         create(emptyCol);
+
+        fillDomain();
     }
     
     private boolean init() {
         boolean ans = true;
+
         for (int i = 0; i < size; i++) {
             for (int j = 0; j < size; j++) {
                 if (grid[i][j] == empty) {
@@ -71,6 +94,7 @@ public class Optimized implements SolverInterface {
                     emptyCol.put(j, set);
                 }
                 else {
+                    // update row/col/box domains
                     int b = root * (i / root) + (j / root);
                     int num = getNum(grid[i][j]);
                     Set<Integer> set = row.get(i);
@@ -88,9 +112,28 @@ public class Optimized implements SolverInterface {
                         ans = false;
                     }
                     box.put(b, set);
+
+                    // update cell domains
+                    // row/col
+                    for (int k = 0; k < size; k++) {
+                        domain.get(i).get(k).remove(num);
+                        domain.get(k).get(j).remove(num);
+                    }
+
+                    // box
+                    int rb = root * (i/root);
+                    int cb = root * (j/root);
+                    for (int k = 0; k < root; k++) {
+                        for (int l = 0; l < root; l++) {
+                            domain.get(rb + k).get(cb + l).remove(num);
+                        }
+                    }
+
                 }
             }
         }
+
+
         return ans;
     }
     
@@ -274,6 +317,9 @@ public class Optimized implements SolverInterface {
             System.out.println("Problem!");
             System.out.println("-------------------------");
         }*/
+
+
+
         for (int num : set) {
             char cc = getChar(num);
             //System.out.println("assign " + cc);
