@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.Set;
 import java.util.HashSet;
 
-public class Optimized {
+public class Optimized implements SolverInterface {
     
     private char[][] grid;
     private final Integer size;
@@ -18,7 +18,10 @@ public class Optimized {
     private final Map<Integer, Set<Integer>> box;
     private final Map<Integer, Set<Integer>> emptyRow;
     private final Map<Integer, Set<Integer>> emptyCol;
-    
+
+    private Integer reccalls = 0;
+    private Integer maxRecdepth = 0;
+
     private void fillArray() {
         for (int x = 0; x < size; x++) {
             arr.add(x);
@@ -27,31 +30,31 @@ public class Optimized {
     
     private void allocate(Map<Integer, Set<Integer>> map) {
         for (int index = 0; index < size; index++) {
-            Set<Integer> set = new HashSet<>(arr);
+            Set<Integer> set = new HashSet<Integer>(arr);
             map.put(index, set);
         }
     }
     
     private void create(Map<Integer, Set<Integer>> map) {
         for (int index = 0; index < size; index++) {
-            map.put(index, new HashSet<>());
+            map.put(index, new HashSet<Integer>());
         }
     }
     
     public Optimized(int n) {
         size = n;
         root = (int) Math.sqrt(n);
-        arr = new HashSet<>();
+        arr = new HashSet<Integer>();
         fillArray();
-        row = new HashMap<>();
+        row = new HashMap<Integer, Set<Integer>>();
         allocate(row);
-        col = new HashMap<>();
+        col = new HashMap<Integer, Set<Integer>>();
         allocate(col);
-        box = new HashMap<>();
+        box = new HashMap<Integer, Set<Integer>>();
         allocate(box);
-        emptyRow = new HashMap<>();
+        emptyRow = new HashMap<Integer, Set<Integer>>();
         create(emptyRow);
-        emptyCol = new HashMap<>();
+        emptyCol = new HashMap<Integer, Set<Integer>>();
         create(emptyCol);
     }
     
@@ -205,7 +208,7 @@ public class Optimized {
     
     private Set<Integer> union(int r, int c) {
         int b = root * (r / root) + (c / root);
-        Set<Integer> res = new HashSet<>();
+        Set<Integer> res = new HashSet<Integer>();
         //for (int num : row.get(r)) {
         //    if (col.get(c).contains(num) && box.get(b).contains(num)) {
         //        res.add(num);
@@ -246,7 +249,13 @@ public class Optimized {
         return res;
     }
     
-    private boolean dfs(int r, int c) {
+    private boolean dfs(int r, int c, int recdepth) {
+        if (recdepth > maxRecdepth) {
+            maxRecdepth = recdepth;
+        }
+        reccalls+=1;
+        if (reccalls > 100000)
+            return false;
         if (r == -1 || c == -1) {
             //System.out.println("done in dfs!");
             return true;
@@ -271,7 +280,7 @@ public class Optimized {
             grid[r][c] = cc;
             add(r, c, num, true);
             int[] pos = getIndex();
-            if (dfs(pos[0], pos[1])) {
+            if (dfs(pos[0], pos[1], recdepth + 1)) {
                 return true;
             }
             //System.out.println("change for (" + r + "," + c + ")");
@@ -295,16 +304,27 @@ public class Optimized {
     
     public boolean solveSudoku(char[][] board) {
         grid = board;
+        System.out.println("Initializing");
+        double startTime = System.nanoTime();
         if (!init()) {
             return false;
         }
+        double endTime = System.nanoTime();
+        double time = (endTime - startTime) / 1000;
+        System.out.println("init time: " + time + " us!");
+        System.out.println();
+
         //System.out.println("row: " + row);
         //System.out.println("col: " + col);
         //System.out.println("box: " + box);
         //System.out.println("empty cells at each row: " + emptyRow);
         //System.out.println("empty cells at each col: " + emptyCol);
         int[] pos = getIndex();
-        return dfs(pos[0], pos[1]);
+        boolean ret = dfs(pos[0], pos[1], 0);
+        System.out.println("recursive calls: " + reccalls.toString());
+        System.out.println("recursive depth: " + maxRecdepth.toString());
+
+        return ret;
     }
     
 }

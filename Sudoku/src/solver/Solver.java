@@ -2,7 +2,7 @@
 package solver;
 
 
-public class Solver {
+public class Solver implements SolverInterface {
     
     private final int size;
     private final int root;
@@ -13,6 +13,9 @@ public class Solver {
     private int[] numRow;
     private boolean flag;
     private final char empty = '0';
+
+    private Integer reccalls = 0;
+    private Integer maxRecdepth = 0;
     
     public Solver() {
         size = 25;
@@ -81,7 +84,14 @@ public class Solver {
         }
     }
     
-    private boolean dfs(int row, int col) {
+    private boolean dfs(int row, int col, int recdepth) {
+        if (recdepth > maxRecdepth) {
+            maxRecdepth = recdepth;
+        }
+        reccalls+=1;
+        if (reccalls > 100000) {
+            return false;
+        }
         if (col == size) {
             col = 0;
             row = getRow();
@@ -90,7 +100,7 @@ public class Solver {
             return true;
         }
         if (grid[row][col] != empty) {
-            return dfs(row, col + 1);
+            return dfs(row, col + 1, recdepth + 1);
         }
         //System.out.println("row = " + row);
         for (int num = 0; num < size; num++) {
@@ -98,7 +108,7 @@ public class Solver {
                 add(row, col, num, true);
                 grid[row][col] = getChar(num);
                 numRow[row]++;
-                if (dfs(row, col + 1)) {
+                if (dfs(row, col + 1, recdepth + 1)) {
                     return true;
                 }
                 //System.out.println("backtrack on row = " + row);
@@ -122,7 +132,10 @@ public class Solver {
             return false;
         }
         int r = getRow();
-        return dfs(r, 0);
+        boolean ret = dfs(r, 0, 0);
+        System.out.println("Recursive calls: " + reccalls.toString());
+        System.out.println("Recursive depth: " + maxRecdepth.toString());
+        return ret;
     }
     
 }

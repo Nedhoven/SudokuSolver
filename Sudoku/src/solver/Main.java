@@ -8,10 +8,17 @@ public class Main {
     public static void main(String[] args) {
         boolean runFlag = true;
         //runTest();
+        boolean useOptimized;
+        if (args.length > 0) {
+            useOptimized = true;
+        }
+        else {
+            useOptimized = false;
+        }
         if (runFlag) {
             char[][] board = getBoard();
             double startTime = System.nanoTime();
-            calculate(board);
+            calculate(board, useOptimized);
             double endTime = System.nanoTime();
             double time = (endTime - startTime) / 1000;
             System.out.println("running time: " + time + " us!");
@@ -22,13 +29,19 @@ public class Main {
     }
     
     public static char[][] getBoard() {
-        Example ex = new Example(9);
+        Example ex = new Example(16);
         return ex.getGrid();
     }
     
-    public static char[][] calculate(char[][] board) {
+    public static char[][] calculate(char[][] board, boolean useOptimized) {
         int n = board.length;
-        Solver s = new Solver(n);
+        SolverInterface s;
+        if (useOptimized) {
+            s = new Optimized(16);
+        }
+        else {
+            s = new Solver(n);
+        }
         boolean ans = s.solveSudoku(board);
         if (!ans) {
             System.err.println("SUDOKU UNSOLVEABLE!");
@@ -44,8 +57,11 @@ public class Main {
     }
     
     public static void runTest() {
-        Optimized s = new Optimized(9);
-        System.out.println(Arrays.toString(s.getChar()));
+//        Optimized s = new Optimized(9);
+//        char[][] board = getBoard();
+//        double startTime =
+//        boolean ans = s.solveSudoku(board);
+//        System.out.println(Arrays.toString(s.getChar()));
     }
     
 }
