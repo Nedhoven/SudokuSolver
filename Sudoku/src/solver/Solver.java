@@ -1,6 +1,11 @@
 
 package solver;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Set;
+import java.util.HashSet;
 
 public class Solver implements SolverInterface {
     
@@ -16,7 +21,10 @@ public class Solver implements SolverInterface {
 
     private Integer reccalls = 0;
     private Integer maxRecdepth = 0;
-    
+
+    private ArrayList<ArrayList<Set<Integer>>> domain;
+
+
     public Solver() {
         size = 25;
         root = 5;
@@ -25,6 +33,9 @@ public class Solver implements SolverInterface {
     public Solver(int n) {
         size = n;
         root = (int) Math.sqrt(n);
+
+        fillDomain();
+
     }
     
     private int getIndex(char c) {
@@ -58,7 +69,48 @@ public class Solver implements SolverInterface {
         }
         return ans;
     }
-    
+
+    private void fillDomain() {
+        domain = new ArrayList<ArrayList<Set<Integer>>>();
+        for (int i = 0; i < size; i++) {
+            domain.add(new ArrayList<Set<Integer>>());
+            for (int j = 0; j < size; j++) {
+                domain.get(i).add(new HashSet<Integer>());
+                for (int num = 0; num < size; num++) {
+                    domain.get(i).get(j).add(num);
+                }
+            }
+        }
+    }
+
+
+    private int getFreq(int num, int row, int col) {
+        int rowFreq = 0;
+        int colFreq = 0;
+        int boxFreq = 0;
+        for (int k = 0; k < size; k++) {
+            if (domain.get(row).get(k).contains(num)) {
+                rowFreq++;
+            }
+            if (domain.get(k).get(col).contains(num)) {
+                colFreq++;
+            }
+        }
+
+        // box
+        int rb = root * (row/root);
+        int cb = root * (col/root);
+        for (int k = 0; k < root; k++) {
+            for (int l = 0; l < root; l++) {
+                if (domain.get(rb + k).get(cb + l).contains(num)) {
+                    boxFreq++;
+                }
+            }
+        }
+        return Math.max(rowFreq, Math.max(colFreq, boxFreq));
+    }
+
+
     private void init() {
         for (int i = 0; i < size; i++) {
             for (int j = 0; j < size; j++) {
@@ -79,6 +131,23 @@ public class Solver implements SolverInterface {
                         flag = true;
                     }
                     box[i][num] = true;
+
+                    // update cell domains
+                    // row/col
+                    for (int k = 0; k < size; k++) {
+                        domain.get(i).get(k).remove(num);
+                        domain.get(k).get(j).remove(num);
+                    }
+
+                    // box
+                    int rb = root * (i/root);
+                    int cb = root * (j/root);
+                    for (int k = 0; k < root; k++) {
+                        for (int l = 0; l < root; l++) {
+                            domain.get(rb + k).get(cb + l).remove(num);
+                        }
+                    }
+
                 }
             }
         }
@@ -89,7 +158,7 @@ public class Solver implements SolverInterface {
             maxRecdepth = recdepth;
         }
         reccalls+=1;
-        if (reccalls > 1000000) {
+        if (reccalls > 100000000) {
             return false;
         }
         if (col == size) {
@@ -100,28 +169,64 @@ public class Solver implements SolverInterface {
             return true;
         }
         if (grid[row][col] != empty) {
-            System.out.println("GOING IN: " + Integer.valueOf(recdepth).toString());
+            //System.out.println("GOING IN: " + Integer.valueOf(recdepth).toString());
 
             return dfs(row, col + 1, recdepth + 1);
         }
         //System.out.println("row = " + row);
+
+        ArrayList<int[]> freqs = new ArrayList<int[]>();
         for (int num = 0; num < size; num++) {
             if (check(row, col, num)) {
-                add(row, col, num, true);
-                grid[row][col] = getChar(num);
-                numRow[row]++;
-                System.out.println("GOING IN: " + Integer.valueOf(recdepth).toString());
-
-                if (dfs(row, col + 1, recdepth + 1)) {
-                    return true;
-                }
-                //System.out.println("backtrack on row = " + row);
-                numRow[row]--;
-                grid[row][col] = empty;
-                add(row, col, num, false);
+                int[] pair = new int[2];
+                pair[0] = num;
+                pair[1] = getFreq(num, row, col);
+                freqs.add(pair);
             }
         }
-        System.out.println("GOING OUT: " + Integer.valueOf(recdepth).toString());
+
+        Comparator<int[]> compareByFreq = new Comparator<int[]>() {
+            public int compare(int[] ar1, int[] ar2) {
+                if (ar1[1] < ar2[1]) {
+                    return -1;
+                }
+                else if (ar1[1] == ar2[1]) {
+                    return 0;
+                }
+                else { // ar1[1] > ar2[1]
+                    return 1;
+                }
+            }
+        };
+        //int[] ar1, int[] ar2) -> ar1[1].compareTo(ar2[1]);
+        Collections.sort(freqs, compareByFreq);
+
+//        if (freqs.size() == 0 || freqs.get(0)[1] >= 13) {
+//            return false;
+//        }
+
+//        System.out.println("****FREQS*****");
+//        for (int i = 0; i < freqs.size(); i++) {
+//            System.out.println("(" + String.valueOf(freqs.get(i)[0]) + ", " + String.valueOf(freqs.get(i)[1]) + ")");
+//        }
+
+
+        for (int i = 0; i < freqs.size(); i++) {
+            int num = freqs.get(i)[0];
+            add(row, col, num, true);
+            grid[row][col] = getChar(num);
+            numRow[row]++;
+            //System.out.println("GOING IN: " + Integer.valueOf(recdepth).toString());
+
+            if (dfs(row, col + 1, recdepth + 1)) {
+                return true;
+            }
+            //System.out.println("backtrack on row = " + row);
+            numRow[row]--;
+            grid[row][col] = empty;
+            add(row, col, num, false);
+        }
+        //System.out.println("GOING OUT: " + Integer.valueOf(recdepth).toString());
 
         return false;
     }

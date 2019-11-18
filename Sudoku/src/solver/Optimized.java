@@ -2,6 +2,8 @@
 package solver;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Set;
@@ -28,6 +30,7 @@ public class Optimized implements SolverInterface {
 
     private Integer reccalls = 0;
     private Integer maxRecdepth = 0;
+    private int lastRecdepth = 0;
 
     private void fillArray() {
         for (int x = 0; x < size; x++) {
@@ -291,13 +294,39 @@ public class Optimized implements SolverInterface {
         }
         return res;
     }
+
+    private int getFreq(int num, int row, int col) {
+        int rowFreq = 0;
+        int colFreq = 0;
+        int boxFreq = 0;
+        for (int k = 0; k < size; k++) {
+            if (domain.get(row).get(k).contains(num)) {
+                rowFreq++;
+            }
+            if (domain.get(k).get(col).contains(num)) {
+                colFreq++;
+            }
+        }
+
+        // box
+        int rb = root * (row/root);
+        int cb = root * (col/root);
+        for (int k = 0; k < root; k++) {
+            for (int l = 0; l < root; l++) {
+                if (domain.get(rb + k).get(cb + l).contains(num)) {
+                    boxFreq++;
+                }
+            }
+        }
+        return Math.max(rowFreq, Math.max(colFreq, boxFreq));
+    }
     
     private boolean dfs(int r, int c, int recdepth) {
         if (recdepth > maxRecdepth) {
             maxRecdepth = recdepth;
         }
         reccalls+=1;
-        if (reccalls > 1000000)
+        if (reccalls > 100000000)
             return false;
         if (r == -1 || c == -1) {
             //System.out.println("done in dfs!");
@@ -318,15 +347,45 @@ public class Optimized implements SolverInterface {
             System.out.println("-------------------------");
         }*/
 
-
-
+        ArrayList<int[]> freqs = new ArrayList<int[]>();
         for (int num : set) {
+            int[] pair = new int[2];
+            pair[0] = num;
+            pair[1] = getFreq(num, r, c);
+            freqs.add(pair);
+        }
+
+        Comparator<int[]> compareByFreq = new Comparator<int[]>() {
+            public int compare(int[] ar1, int[] ar2) {
+                if (ar1[1] < ar2[1]) {
+                    return -1;
+                }
+                else if (ar1[1] == ar2[1]) {
+                    return 0;
+                }
+                else { // ar1[1] > ar2[1]
+                    return 1;
+                }
+            }
+        };
+        //int[] ar1, int[] ar2) -> ar1[1].compareTo(ar2[1]);
+        Collections.sort(freqs, compareByFreq);
+
+//        if (freqs.size() == 0 || freqs.get(0)[1] >= 13) {
+//            return false;
+//        }
+
+        for (int i = 0; i < freqs.size(); i++) {
+            int num = freqs.get(i)[0];
             char cc = getChar(num);
             //System.out.println("assign " + cc);
             grid[r][c] = cc;
             add(r, c, num, true);
             int[] pos = getIndex();
-            System.out.println("GOING IN: " + Integer.valueOf(recdepth).toString());
+            if (recdepth % 60 == 0 && recdepth != lastRecdepth) {
+                lastRecdepth = recdepth;
+                System.out.println("GOING IN: " + Integer.valueOf(recdepth).toString());
+            }
             if (dfs(pos[0], pos[1], recdepth + 1)) {
                 return true;
             }
@@ -346,7 +405,10 @@ public class Optimized implements SolverInterface {
                 System.out.println("-------------------------");
             }*/
         }
-        System.out.println("GOING OUT: " + Integer.valueOf(recdepth).toString());
+        if (recdepth % 40 == 0) {
+            //lastRecdepth = recdepth;
+            //System.out.println("GOING OUT: " + Integer.valueOf(recdepth).toString());
+        }
         return false;
     }
     
