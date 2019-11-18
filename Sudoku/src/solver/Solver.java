@@ -89,7 +89,7 @@ public class Solver implements SolverInterface {
             maxRecdepth = recdepth;
         }
         reccalls+=1;
-        if (reccalls > 100000) {
+        if (reccalls > 1000000) {
             return false;
         }
         if (col == size) {
@@ -100,6 +100,8 @@ public class Solver implements SolverInterface {
             return true;
         }
         if (grid[row][col] != empty) {
+            System.out.println("GOING IN: " + Integer.valueOf(recdepth).toString());
+
             return dfs(row, col + 1, recdepth + 1);
         }
         //System.out.println("row = " + row);
@@ -108,6 +110,8 @@ public class Solver implements SolverInterface {
                 add(row, col, num, true);
                 grid[row][col] = getChar(num);
                 numRow[row]++;
+                System.out.println("GOING IN: " + Integer.valueOf(recdepth).toString());
+
                 if (dfs(row, col + 1, recdepth + 1)) {
                     return true;
                 }
@@ -117,6 +121,8 @@ public class Solver implements SolverInterface {
                 add(row, col, num, false);
             }
         }
+        System.out.println("GOING OUT: " + Integer.valueOf(recdepth).toString());
+
         return false;
     }
     

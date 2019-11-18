@@ -254,7 +254,7 @@ public class Optimized implements SolverInterface {
             maxRecdepth = recdepth;
         }
         reccalls+=1;
-        if (reccalls > 100000)
+        if (reccalls > 1000000)
             return false;
         if (r == -1 || c == -1) {
             //System.out.println("done in dfs!");
@@ -280,6 +280,7 @@ public class Optimized implements SolverInterface {
             grid[r][c] = cc;
             add(r, c, num, true);
             int[] pos = getIndex();
+            System.out.println("GOING IN: " + Integer.valueOf(recdepth).toString());
             if (dfs(pos[0], pos[1], recdepth + 1)) {
                 return true;
             }
@@ -299,6 +300,7 @@ public class Optimized implements SolverInterface {
                 System.out.println("-------------------------");
             }*/
         }
+        System.out.println("GOING OUT: " + Integer.valueOf(recdepth).toString());
         return false;
     }
     
