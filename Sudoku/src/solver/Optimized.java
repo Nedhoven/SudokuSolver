@@ -83,9 +83,73 @@ public class Optimized implements SolverInterface {
         }
     }
 
-    public void pathcons() {
-
-    }
+//    public void pathcons() {
+//        LinkedList<ArrayList<Integer>> lst = new LinkedList<Integer>();
+//
+//        for (int k = 0; k < size*size; k++) {
+//            for (int l = k + 1; l < size*size; l++) {
+//                int i1 = k/size;
+//                int j1 = k%size;
+//                int i2 = l/size;
+//                int j2 = l%size;
+//
+//                int b1 = root*(i1/root) + (j1/root);
+//                int b2 = root*(i2/root) + (j2/root);
+//
+//                if (i1 == j1 || i2 == j2 || b1 == b2) {
+//                    // arc consistency covers these
+//                    continue;
+//                }
+//
+//                if (grid[i1][j1] != empty && grid[i2][j2] != empty) {
+//                    ArrayList<Integer> ar = new ArrayList<Integer>():
+//                    ar.add(k);
+//                    ar.add(l);
+//                    lst.addLast(ar);
+//                }
+//            }
+//        }
+//        while (lst.size() > 0) {
+//            ArrayList<Integer> ar = lst.removeFirst();
+//            int k = ar.get(0);
+//            int l = ar.get(1);
+//            int i1 = k/size;
+//            int j1 = k%size;
+//            int i2 = l/size;
+//            int j2 = l%size;
+//            for (int p = 0; p < size*size; p++) {
+//                if (p == k || p == l) continue;
+//                int r = p/size;
+//                int s = p%size;
+//                int b = root*(r/root) + (s/root);
+//                if (grid[r][s] != empty) {
+//                    continue;
+//                }
+//
+//                // in row i1, col j2
+//                if (r == i1 && s == j2) {
+//                    domain.get(r).get(s).remove()
+//                }
+//                else if (r == i1 && b == b2) {
+//
+//                }
+//                else if (s == j1 && r == i2) {
+//
+//                }
+//                else if (s == j1 && b == b2) {
+//
+//                }
+//                else if (b == b1 && r == i2) {
+//
+//                }
+//                else if (b == b1 && s == j2 ) {
+//
+//                }
+//
+//            }
+//        }
+//
+//    }
 
     public void ac3() {
         LinkedList<Integer> lst = new LinkedList<Integer>();
@@ -113,9 +177,11 @@ public class Optimized implements SolverInterface {
                 domain.get(k).get(pos[1]).remove(num);
 
                 if (domain.get(pos[0]).get(k).size() == 1 && oldRowmateSize > 1) {
+                    grid[pos[0]][k] = getChar(domain.get(pos[0]).get(k).iterator().next());
                     lst.addLast(pos[0]*size+k);
                 }
                 if (domain.get(k).get(pos[1]).size() == 1 && oldColmateSize > 1) {
+                    grid[pos[0]][k] = getChar(domain.get(k).get(pos[1]).iterator().next());
                     lst.addLast(k*size+pos[1]);
                 }
             }
@@ -128,6 +194,7 @@ public class Optimized implements SolverInterface {
                     int oldBoxmateSize = domain.get(rb + k).get(cb + l).size();
                     domain.get(rb + k).get(cb + l).remove(num);
                     if (domain.get(rb + k).get(cb + l).size() == 1 && oldBoxmateSize > 1) {
+                        grid[rb + k][cb + l] = getChar(domain.get(rb + k).get(cb + l).iterator().next());
                         lst.addLast((rb+k)*size+(cb+l));
                     }
                 }
