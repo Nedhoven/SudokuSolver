@@ -7,6 +7,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Set;
 import java.util.HashSet;
 
@@ -52,6 +53,23 @@ public class Optimized implements SolverInterface {
         }
     }
 
+    private Set<Integer> getDomain(int r, int c) {
+        Set<Integer> dom = new HashSet<Integer>();
+        Set<Integer> rowSet = row.get(r);
+        Set<Integer> colSet = col.get(c);
+        int b = root * (r / root) + (c / root);
+
+        Set<Integer> boxSet = box.get(b);
+
+        for (int i = 0; i < size; i++) {
+            if (!rowSet.contains(i) && !colSet.contains(i) && !boxSet.contains(i) && domain.get(r).get(c).contains(i)) {
+                dom.add(i);
+            }
+        }
+
+        return dom;
+    }
+
     private void fillDomain() {
         domain = new ArrayList<ArrayList<Set<Integer>>>();
         for (int i = 0; i < size; i++) {
@@ -62,6 +80,52 @@ public class Optimized implements SolverInterface {
                     domain.get(i).get(j).add(num);
                 }
             }
+        }
+    }
+
+    public void ac3() {
+        LinkedList<Integer> lst = new LinkedList<Integer>();
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+                if (grid[i][j] != empty) {
+                    lst.addLast(i*size+j);
+                }
+            }
+        }
+
+        while (lst.size() > 0) {
+            Integer posint = lst.removeFirst();
+            int[] pos = new int[2];
+            pos[0] = posint / size;
+            pos[1] = posint % size;
+            int num = getNum(grid[pos[0]][pos[1]]);
+
+            // update cell domains
+            // row/col
+            for (int k = 0; k < size; k++) {
+                domain.get(pos[0]).get(k).remove(num);
+                domain.get(k).get(pos[1]).remove(num);
+
+                if (domain.get(pos[0]).get(k).size() == 1) {
+                    lst.addLast(pos[0]*size+k);
+                }
+                if (domain.get(k).get(pos[1]).size() == 1) {
+                    lst.addLast(k*size+pos[1]);
+                }
+            }
+
+            // box
+            int rb = root * (pos[0]/root);
+            int cb = root * (pos[1]/root);
+            for (int k = 0; k < root; k++) {
+                for (int l = 0; l < root; l++) {
+                    domain.get(rb + k).get(cb + l).remove(num);
+                    if (domain.get(rb + k).get(cb + l).size() == 1) {
+                        lst.addLast((rb+k)*size+(cb+l));
+                    }
+                }
+            }
+
         }
     }
     
@@ -132,26 +196,26 @@ public class Optimized implements SolverInterface {
                     }
                     box.put(b, set);
 
-                    // update cell domains
-                    // row/col
-                    for (int k = 0; k < size; k++) {
-                        domain.get(i).get(k).remove(num);
-                        domain.get(k).get(j).remove(num);
-                    }
-
-                    // box
-                    int rb = root * (i/root);
-                    int cb = root * (j/root);
-                    for (int k = 0; k < root; k++) {
-                        for (int l = 0; l < root; l++) {
-                            domain.get(rb + k).get(cb + l).remove(num);
-                        }
-                    }
+//                    // update cell domains
+//                    // row/col
+//                    for (int k = 0; k < size; k++) {
+//                        domain.get(i).get(k).remove(num);
+//                        domain.get(k).get(j).remove(num);
+//                    }
+//
+//                    // box
+//                    int rb = root * (i/root);
+//                    int cb = root * (j/root);
+//                    for (int k = 0; k < root; k++) {
+//                        for (int l = 0; l < root; l++) {
+//                            domain.get(rb + k).get(cb + l).remove(num);
+//                        }
+//                    }
 
                 }
             }
         }
-
+        //ac3();
 
         return ans;
     }
@@ -172,7 +236,8 @@ public class Optimized implements SolverInterface {
         for (int i = 0; i < size; i++) {
             for (int j = 0; j < size; j++) {
                 if (grid[i][j] != empty) continue;
-                int domainSize = domain.get(i).get(j).size();
+                //int domainSize = domain.get(i).get(j).size();
+                int domainSize = getDomain(i, j).size();
                 if (domainSize < size) {
                     argminI = i;
                     argminJ = j;
@@ -336,12 +401,19 @@ public class Optimized implements SolverInterface {
         int colFreq = 0;
         int boxFreq = 0;
         for (int k = 0; k < size; k++) {
-            if (domain.get(row).get(k).contains(num)) {
+            if (getDomain(row, k).contains(num)) {
                 rowFreq++;
             }
-            if (domain.get(k).get(col).contains(num)) {
+            if (getDomain(k, col).contains(num)) {
                 colFreq++;
             }
+//
+//            if (domain.get(row).get(k).contains(num)) {
+//                rowFreq++;
+//            }
+//            if (domain.get(k).get(col).contains(num)) {
+//                colFreq++;
+//            }
         }
 
         // box
@@ -349,7 +421,10 @@ public class Optimized implements SolverInterface {
         int cb = root * (col/root);
         for (int k = 0; k < root; k++) {
             for (int l = 0; l < root; l++) {
-                if (domain.get(rb + k).get(cb + l).contains(num)) {
+//                if (domain.get(rb + k).get(cb + l).contains(num)) {
+//                    boxFreq++;
+//                }
+                if (getDomain(rb + k, cb + l).contains(num)) {
                     boxFreq++;
                 }
             }
@@ -417,7 +492,7 @@ public class Optimized implements SolverInterface {
             grid[r][c] = cc;
             add(r, c, num, true);
             int[] pos = getIndex();
-            if (recdepth % 40 == 0 && recdepth != lastRecdepth) {
+            if (recdepth % 30 == 0 && recdepth != lastRecdepth) {
                 lastRecdepth = recdepth;
                 System.out.println("GOING IN: " + Integer.valueOf(recdepth).toString());
                 show(grid);
