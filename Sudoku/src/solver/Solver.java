@@ -22,6 +22,8 @@ public class Solver implements SolverInterface {
     private Integer reccalls = 0;
     private Integer maxRecdepth = 0;
 
+    private int lastRecdepth = 0;
+
     private ArrayList<ArrayList<Set<Integer>>> domain;
 
 
@@ -158,7 +160,7 @@ public class Solver implements SolverInterface {
             maxRecdepth = recdepth;
         }
         reccalls+=1;
-        if (reccalls > 100000000) {
+        if (reccalls > 10000000) {
             return false;
         }
         if (col == size) {
@@ -170,6 +172,10 @@ public class Solver implements SolverInterface {
         }
         if (grid[row][col] != empty) {
             //System.out.println("GOING IN: " + Integer.valueOf(recdepth).toString());
+            if (recdepth % 60 == 0 && recdepth != lastRecdepth) {
+                lastRecdepth = recdepth;
+                System.out.println("GOING IN: " + Integer.valueOf(recdepth).toString());
+            }
 
             return dfs(row, col + 1, recdepth + 1);
         }
@@ -216,8 +222,10 @@ public class Solver implements SolverInterface {
             add(row, col, num, true);
             grid[row][col] = getChar(num);
             numRow[row]++;
-            //System.out.println("GOING IN: " + Integer.valueOf(recdepth).toString());
-
+            if (recdepth % 60 == 0 && recdepth != lastRecdepth) {
+                lastRecdepth = recdepth;
+                System.out.println("GOING IN: " + Integer.valueOf(recdepth).toString());
+            }
             if (dfs(row, col + 1, recdepth + 1)) {
                 return true;
             }

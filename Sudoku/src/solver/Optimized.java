@@ -2,6 +2,7 @@
 package solver;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Map;
@@ -82,7 +83,22 @@ public class Optimized implements SolverInterface {
 
         fillDomain();
     }
-    
+    public static void show(char[][] board) {
+        for (char[] arr : board) {
+            System.out.println(Arrays.toString(arr));
+        }
+    }
+
+//    private void printBoard() {
+//        for (int i = 0; i < size; i++) {
+//            for (int j = 0; j < size; j++) {
+//                System.out.print(grid[i][j]);
+//            }
+//            System.out.print('\n');
+//        }
+//        System.out.println();
+//    }
+//
     private boolean init() {
         boolean ans = true;
 
@@ -147,62 +163,82 @@ public class Optimized implements SolverInterface {
     private char getChar(int num) {
         return num < 9 ? (char) (num + '1') : (char) (num + 'A' - 9);
     }
-    
+
     private int[] getIndex() {
+        int argminI = -1;
+        int argminJ = -1;
+        int minDomainSize = size + 1;
         int[] res = new int[2];
-        int minRow = size + 1;
-        int minCol = size + 1;
-        int r = -1;
-        int c = -1;
         for (int i = 0; i < size; i++) {
-            if (!row.get(i).isEmpty() && row.get(i).size() < minRow) {
-                minRow = row.get(i).size();
-                r = i;
-            }
-            if (!col.get(i).isEmpty() && col.get(i).size() < minCol) {
-                minCol = col.get(i).size();
-                c = i;
-            }
-        }
-        //System.out.println("found: " + r + " with " + minRow + " and " + c + " with " + minCol);
-        if (r == -1 && c == -1) {
-            //System.out.println("done looking!");
-            //System.out.println("row: " + row);
-            //System.out.println("col: " + col);
-            res[0] = r;
-            res[1] = c;
-            return res;
-        }
-        if (minRow < minCol) {
-            res[0] = r;
-            //System.out.println("set x as " + r);
-            minCol = size + 1;
-            c = -1;
-            //System.out.println("empty cells: " + emptyRow.get(r));
-            for (int j : emptyRow.get(r)) {
-                if (!col.get(j).isEmpty() && col.get(j).size() < minCol) {
-                    minCol = col.get(j).size();
-                    c = j;
+            for (int j = 0; j < size; j++) {
+                if (grid[i][j] != empty) continue;
+                int domainSize = domain.get(i).get(j).size();
+                if (domainSize < size) {
+                    argminI = i;
+                    argminJ = j;
+                    minDomainSize = domainSize;
                 }
             }
-            res[1] = c;
         }
-        else {
-            res[1] = c;
-            //System.out.println("set y as " + c);
-            minRow = size + 1;
-            r = -1;
-            //System.out.println("empty cells: " + emptyCol.get(c));
-            for (int i : emptyCol.get(c)) {
-                if (!row.get(i).isEmpty() && row.get(i).size() < minRow) {
-                    minRow = row.get(i).size();
-                    r = i;
-                }
-            }
-            res[0] = r;
-        }
+        res[0] = argminI;
+        res[1] = argminJ;
         return res;
     }
+//    private int[] getIndex() {
+//        int[] res = new int[2];
+//        int minRow = size + 1;
+//        int minCol = size + 1;
+//        int r = -1;
+//        int c = -1;
+//        for (int i = 0; i < size; i++) {
+//            if (!row.get(i).isEmpty() && row.get(i).size() < minRow) {
+//                minRow = row.get(i).size();
+//                r = i;
+//            }
+//            if (!col.get(i).isEmpty() && col.get(i).size() < minCol) {
+//                minCol = col.get(i).size();
+//                c = i;
+//            }
+//        }
+//        //System.out.println("found: " + r + " with " + minRow + " and " + c + " with " + minCol);
+//        if (r == -1 && c == -1) {
+//            //System.out.println("done looking!");
+//            //System.out.println("row: " + row);
+//            //System.out.println("col: " + col);
+//            res[0] = r;
+//            res[1] = c;
+//            return res;
+//        }
+//        if (minRow < minCol) {
+//            res[0] = r;
+//            //System.out.println("set x as " + r);
+//            minCol = size + 1;
+//            c = -1;
+//            //System.out.println("empty cells: " + emptyRow.get(r));
+//            for (int j : emptyRow.get(r)) {
+//                if (!col.get(j).isEmpty() && col.get(j).size() < minCol) {
+//                    minCol = col.get(j).size();
+//                    c = j;
+//                }
+//            }
+//            res[1] = c;
+//        }
+//        else {
+//            res[1] = c;
+//            //System.out.println("set y as " + c);
+//            minRow = size + 1;
+//            r = -1;
+//            //System.out.println("empty cells: " + emptyCol.get(c));
+//            for (int i : emptyCol.get(c)) {
+//                if (!row.get(i).isEmpty() && row.get(i).size() < minRow) {
+//                    minRow = row.get(i).size();
+//                    r = i;
+//                }
+//            }
+//            res[0] = r;
+//        }
+//        return res;
+//    }
     
     private void add(int r, int c, int num, boolean flag) {
         int b = root * (r / root) + (c / root);
@@ -326,7 +362,7 @@ public class Optimized implements SolverInterface {
             maxRecdepth = recdepth;
         }
         reccalls+=1;
-        if (reccalls > 100000000)
+        if (reccalls > 10000000)
             return false;
         if (r == -1 || c == -1) {
             //System.out.println("done in dfs!");
@@ -368,12 +404,11 @@ public class Optimized implements SolverInterface {
                 }
             }
         };
-        //int[] ar1, int[] ar2) -> ar1[1].compareTo(ar2[1]);
         Collections.sort(freqs, compareByFreq);
-
 //        if (freqs.size() == 0 || freqs.get(0)[1] >= 13) {
 //            return false;
 //        }
+        //System.out.println(String.valueOf(freqs.size()));
 
         for (int i = 0; i < freqs.size(); i++) {
             int num = freqs.get(i)[0];
@@ -382,9 +417,10 @@ public class Optimized implements SolverInterface {
             grid[r][c] = cc;
             add(r, c, num, true);
             int[] pos = getIndex();
-            if (recdepth % 60 == 0 && recdepth != lastRecdepth) {
+            if (recdepth % 40 == 0 && recdepth != lastRecdepth) {
                 lastRecdepth = recdepth;
                 System.out.println("GOING IN: " + Integer.valueOf(recdepth).toString());
+                show(grid);
             }
             if (dfs(pos[0], pos[1], recdepth + 1)) {
                 return true;
