@@ -83,52 +83,59 @@ public class Optimized implements SolverInterface {
         }
     }
 
-//    public void ac3() {
-//        LinkedList<Integer> lst = new LinkedList<Integer>();
-//        for (int i = 0; i < size; i++) {
-//            for (int j = 0; j < size; j++) {
-//                if (grid[i][j] != empty) {
-//                    lst.addLast(i*size+j);
-//                }
-//            }
-//        }
-//
-//        while (lst.size() > 0) {
-//            Integer posint = lst.removeFirst();
-//            int[] pos = new int[2];
-//            pos[0] = posint / size;
-//            pos[1] = posint % size;
-//            int num = getNum(grid[pos[0]][pos[1]]);
-//
-//            // update cell domains
-//            // row/col
-//            for (int k = 0; k < size; k++) {
-//                domain.get(pos[0]).get(k).remove(num);
-//                domain.get(k).get(pos[1]).remove(num);
-//
-//                if (domain.get(pos[0]).get(k).size() == 1) {
-//                    lst.addLast(pos[0]*size+k);
-//                }
-//                if (domain.get(k).get(pos[1]).size() == 1) {
-//                    lst.addLast(k*size+pos[1]);
-//                }
-//            }
-//
-//            // box
-//            int rb = root * (pos[0]/root);
-//            int cb = root * (pos[1]/root);
-//            for (int k = 0; k < root; k++) {
-//                for (int l = 0; l < root; l++) {
-//                    domain.get(rb + k).get(cb + l).remove(num);
-//                    if (domain.get(rb + k).get(cb + l).size() == 1) {
-//                        lst.addLast((rb+k)*size+(cb+l));
-//                    }
-//                }
-//            }
-//
-//        }
-//    }
-//
+    public void pathcons() {
+
+    }
+
+    public void ac3() {
+        LinkedList<Integer> lst = new LinkedList<Integer>();
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+                if (grid[i][j] != empty) {
+                    lst.addLast(i*size+j);
+                }
+            }
+        }
+
+        while (lst.size() > 0) {
+            Integer posint = lst.removeFirst();
+            int[] pos = new int[2];
+            pos[0] = posint / size;
+            pos[1] = posint % size;
+            int num = getNum(grid[pos[0]][pos[1]]);
+
+            // update cell domains
+            // row/col
+            for (int k = 0; k < size; k++) {
+                int oldRowmateSize = domain.get(pos[0]).get(k).size();
+                int oldColmateSize = domain.get(k).get(pos[1]).size();
+                domain.get(pos[0]).get(k).remove(num);
+                domain.get(k).get(pos[1]).remove(num);
+
+                if (domain.get(pos[0]).get(k).size() == 1 && oldRowmateSize > 1) {
+                    lst.addLast(pos[0]*size+k);
+                }
+                if (domain.get(k).get(pos[1]).size() == 1 && oldColmateSize > 1) {
+                    lst.addLast(k*size+pos[1]);
+                }
+            }
+
+            // box
+            int rb = root * (pos[0]/root);
+            int cb = root * (pos[1]/root);
+            for (int k = 0; k < root; k++) {
+                for (int l = 0; l < root; l++) {
+                    int oldBoxmateSize = domain.get(rb + k).get(cb + l).size();
+                    domain.get(rb + k).get(cb + l).remove(num);
+                    if (domain.get(rb + k).get(cb + l).size() == 1 && oldBoxmateSize > 1) {
+                        lst.addLast((rb+k)*size+(cb+l));
+                    }
+                }
+            }
+
+        }
+    }
+
     public Optimized(int n) {
         size = n;
         root = (int) Math.sqrt(n);
@@ -215,7 +222,7 @@ public class Optimized implements SolverInterface {
                 }
             }
         }
-        //ac3();
+        ac3();
 
         return ans;
     }
@@ -620,19 +627,27 @@ public class Optimized implements SolverInterface {
             char cc = getChar(num);
             //System.out.println("assign " + cc);
             grid[r][c] = cc;
+            if (forcedNum != -1) {
+                System.out.println("ADDING " + String.valueOf(r) + " " + String.valueOf(c) + " " + String.valueOf(num));
+            }
             add(r, c, num, true);
-            if (recdepth % 20 == 0 && recdepth != lastRecdepth) {
+            if (recdepth % 40 == 0 && recdepth != lastRecdepth) {
                 lastRecdepth = recdepth;
                 System.out.println("GOING IN: " + Integer.valueOf(recdepth).toString());
+                show(grid);
+            }
+            if (reccalls % 10000 == 0) {
+                System.out.println("RECCALLS " + String.valueOf(reccalls));
+                System.out.println("DEPTH " + String.valueOf(recdepth));
                 show(grid);
             }
 
             int[] forced = getForcedVal();
             if (forced[0] != -1) {
-                System.out.println(Arrays.toString(forced));
-                if (recdepth > 100) {
-                    return false;
-                }
+                System.out.println("FORCING: " + Arrays.toString(forced));
+//                if (recdepth > 100) {
+//                    return false;
+//                }
                 if (dfs(forced[0], forced[1], recdepth + 1, forced[2])) {
                     return true;
                 }
