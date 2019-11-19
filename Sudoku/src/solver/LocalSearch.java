@@ -204,43 +204,44 @@ public class LocalSearch implements SolverInterface {
         return num < 9 ? (char) (num + '1') : (char) (num + 'A' - 9);
     }
 
-    public boolean solveSudoku(char[][] board) {
-        grid = board;
-        System.out.println("Initializing");
-        double startTime = System.nanoTime();
-//        if (!init()) {
-//            return false;
+    public char[][] solveSudoku(char[][] board) {
+        return board;
+//        grid = board;
+//        System.out.println("Initializing");
+//        double startTime = System.nanoTime();
+////        if (!init()) {
+////            return false;
+////        }
+//        init();
+//        double endTime = System.nanoTime();
+//        double time = (endTime - startTime) / 1000;
+//        System.out.println("init time: " + time + " us!");
+//        System.out.println();
+//
+//        while(!localSearch()) {
+//            if (calls % 100000 == 0) {
+//                show(grid);
+//                thresh = thresh * 999/1000;
+//                        //1.0/100000000.0;
+//                System.out.println(String.valueOf(thresh));
+//            }
+//            calls++;
+//            if (calls > 100000000) {
+//                return false;
+//            }
 //        }
-        init();
-        double endTime = System.nanoTime();
-        double time = (endTime - startTime) / 1000;
-        System.out.println("init time: " + time + " us!");
-        System.out.println();
-
-        while(!localSearch()) {
-            if (calls % 100000 == 0) {
-                show(grid);
-                thresh = thresh * 999/1000;
-                        //1.0/100000000.0;
-                System.out.println(String.valueOf(thresh));
-            }
-            calls++;
-            if (calls > 100000000) {
-                return false;
-            }
-        }
-        return true;
-
-        //System.out.println("row: " + row);
-        //System.out.println("col: " + col);
-        //System.out.println("box: " + box);
-        //System.out.println("empty cells at each row: " + emptyRow);
-        //System.out.println("empty cells at each col: " + emptyCol);
-        //int[] pos = getIndex();
-        //boolean ret = dfs(pos[0], pos[1], 0);
-        //System.out.println("recursive calls: " + reccalls.toString());
-        //System.out.println("recursive depth: " + maxRecdepth.toString());
-
+//        return true;
+//
+//        //System.out.println("row: " + row);
+//        //System.out.println("col: " + col);
+//        //System.out.println("box: " + box);
+//        //System.out.println("empty cells at each row: " + emptyRow);
+//        //System.out.println("empty cells at each col: " + emptyCol);
+//        //int[] pos = getIndex();
+//        //boolean ret = dfs(pos[0], pos[1], 0);
+//        //System.out.println("recursive calls: " + reccalls.toString());
+//        //System.out.println("recursive depth: " + maxRecdepth.toString());
+//
     }
 
 }

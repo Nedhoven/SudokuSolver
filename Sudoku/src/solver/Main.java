@@ -18,13 +18,13 @@ public class Main {
         if (runFlag) {
             char[][] board = getBoard();
             double startTime = System.nanoTime();
-            calculate(board, useOptimized);
+            char[][] ans = calculate(board, useOptimized);
             double endTime = System.nanoTime();
             double time = (endTime - startTime) / 1000;
             System.out.println("running time: " + time + " us!");
             System.out.println();
             System.out.println("answer:");
-            show(board);
+            show(ans);
         }
     }
     
@@ -42,12 +42,12 @@ public class Main {
         else {
             s = new Solver(n);
         }
-        boolean ans = s.solveSudoku(board);
-        if (!ans) {
+        char[][] ans = s.solveSudoku(board);
+        if (ans == null) {
             System.err.println("SUDOKU UNSOLVEABLE!");
             System.exit(1);
         }
-        return board;
+        return ans;
     }
     
     public static void show(char[][] board) {
