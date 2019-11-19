@@ -62,7 +62,7 @@ public class Optimized implements SolverInterface {
         Set<Integer> boxSet = box.get(b);
 
         for (int i = 0; i < size; i++) {
-            if (!rowSet.contains(i) && !colSet.contains(i) && !boxSet.contains(i) && domain.get(r).get(c).contains(i)) {
+            if (rowSet.contains(i) && colSet.contains(i) && boxSet.contains(i) && domain.get(r).get(c).contains(i)) {
                 dom.add(i);
             }
         }
@@ -83,52 +83,52 @@ public class Optimized implements SolverInterface {
         }
     }
 
-    public void ac3() {
-        LinkedList<Integer> lst = new LinkedList<Integer>();
-        for (int i = 0; i < size; i++) {
-            for (int j = 0; j < size; j++) {
-                if (grid[i][j] != empty) {
-                    lst.addLast(i*size+j);
-                }
-            }
-        }
-
-        while (lst.size() > 0) {
-            Integer posint = lst.removeFirst();
-            int[] pos = new int[2];
-            pos[0] = posint / size;
-            pos[1] = posint % size;
-            int num = getNum(grid[pos[0]][pos[1]]);
-
-            // update cell domains
-            // row/col
-            for (int k = 0; k < size; k++) {
-                domain.get(pos[0]).get(k).remove(num);
-                domain.get(k).get(pos[1]).remove(num);
-
-                if (domain.get(pos[0]).get(k).size() == 1) {
-                    lst.addLast(pos[0]*size+k);
-                }
-                if (domain.get(k).get(pos[1]).size() == 1) {
-                    lst.addLast(k*size+pos[1]);
-                }
-            }
-
-            // box
-            int rb = root * (pos[0]/root);
-            int cb = root * (pos[1]/root);
-            for (int k = 0; k < root; k++) {
-                for (int l = 0; l < root; l++) {
-                    domain.get(rb + k).get(cb + l).remove(num);
-                    if (domain.get(rb + k).get(cb + l).size() == 1) {
-                        lst.addLast((rb+k)*size+(cb+l));
-                    }
-                }
-            }
-
-        }
-    }
-    
+//    public void ac3() {
+//        LinkedList<Integer> lst = new LinkedList<Integer>();
+//        for (int i = 0; i < size; i++) {
+//            for (int j = 0; j < size; j++) {
+//                if (grid[i][j] != empty) {
+//                    lst.addLast(i*size+j);
+//                }
+//            }
+//        }
+//
+//        while (lst.size() > 0) {
+//            Integer posint = lst.removeFirst();
+//            int[] pos = new int[2];
+//            pos[0] = posint / size;
+//            pos[1] = posint % size;
+//            int num = getNum(grid[pos[0]][pos[1]]);
+//
+//            // update cell domains
+//            // row/col
+//            for (int k = 0; k < size; k++) {
+//                domain.get(pos[0]).get(k).remove(num);
+//                domain.get(k).get(pos[1]).remove(num);
+//
+//                if (domain.get(pos[0]).get(k).size() == 1) {
+//                    lst.addLast(pos[0]*size+k);
+//                }
+//                if (domain.get(k).get(pos[1]).size() == 1) {
+//                    lst.addLast(k*size+pos[1]);
+//                }
+//            }
+//
+//            // box
+//            int rb = root * (pos[0]/root);
+//            int cb = root * (pos[1]/root);
+//            for (int k = 0; k < root; k++) {
+//                for (int l = 0; l < root; l++) {
+//                    domain.get(rb + k).get(cb + l).remove(num);
+//                    if (domain.get(rb + k).get(cb + l).size() == 1) {
+//                        lst.addLast((rb+k)*size+(cb+l));
+//                    }
+//                }
+//            }
+//
+//        }
+//    }
+//
     public Optimized(int n) {
         size = n;
         root = (int) Math.sqrt(n);
@@ -431,8 +431,132 @@ public class Optimized implements SolverInterface {
         }
         return Math.max(rowFreq, Math.max(colFreq, boxFreq));
     }
-    
-    private boolean dfs(int r, int c, int recdepth) {
+
+    private int[] getForcedVal() {
+        int[] res = new int[3];
+        res[0] = -1;
+        res[1] = -1;
+        res[2] = -1;
+        for (int i = 0; i < size; i++) {
+            Set<Integer> rowSet = row.get(i);
+            for (int num = 0; num < size; num++) {
+                if (rowSet.contains(num)) {
+                    continue;
+                }
+                Set<Integer> places = new HashSet<Integer>();
+                for (int j = 0; j < size; j++) {
+                    if (grid[i][j] != empty) {
+                        continue;
+                    }
+                    Set<Integer> dom = getDomain(i, j);
+                    if (dom.contains(num)) {
+                        places.add(j);
+                    }
+                }
+                if (places.size() == 1) {
+                    System.out.println("FOUND");
+                    char cc = getChar(num);
+                    int j = places.iterator().next();
+                    res[0] = i;
+                    res[1] = j;
+                    res[2] = num;
+                    System.out.println(String.valueOf(getDomain(i, j).contains(num)));
+                    return res;
+                }
+            }
+        }
+
+        for (int j = 0; j < size; j++) {
+            Set<Integer> colSet = col.get(j);
+            for (int num = 0; num < size; num++) {
+                if (colSet.contains(num)) {
+                    continue;
+                }
+                Set<Integer> places = new HashSet<Integer>();
+                for (int i = 0; i < size; i++) {
+                    if (grid[i][j] != empty) {
+                        continue;
+                    }
+                    Set<Integer> dom = getDomain(i, j);
+                    if (dom.contains(num)) {
+                        places.add(i);
+                    }
+                }
+                if (places.size() == 1) {
+                    char cc = getChar(num);
+                    int r = places.iterator().next();
+                    res[0] = r;
+                    res[1] = j;
+                    res[2] = num;
+                    return res;
+                    //grid[i][c] = cc;
+                    //add(i, c, num, true);
+                }
+            }
+        }
+
+        for (int b = 0; b < size; b++) {
+            Set<Integer> boxSet = box.get(b);
+            for (int num = 0; num < size; num++) {
+                if (boxSet.contains(num)) {
+                    continue;
+                }
+                Set<Integer> places = new HashSet<Integer>();
+                int rb = b / root;
+                int cb = b % root;
+                for (int k = 0; k < root; k++) {
+                    for (int l = 0; l < root; l++) {
+                        if (grid[root * rb + k][root * cb + l] != empty) {
+                            continue;
+                        }
+                        Set<Integer> dom = getDomain(root*rb + k, root*cb + l);
+                        if (dom.contains(num)) {
+                            places.add(k*root+l);
+                        }
+                    }
+                }
+                if (places.size() == 1) {
+                    char cc = getChar(num);
+                    int bi = places.iterator().next();
+                    int rk = bi / root;
+                    int cl = bi % root;
+                    res[0] = root * rb + rk;
+                    res[1] = root * cb + cl;
+                    res[2] = num;
+                    return res;
+                }
+            }
+        }
+
+
+        return res;
+//        for (int j = 0; j < size; j++) {
+//            Set<Integer> colSet = col.get(j);
+//            for (int num = 0; num < size; num++) {
+//                if (colSet.contains(num)) {
+//                    continue;
+//                }
+//                Set<Integer> places = new HashSet<Integer>();
+//                for (int i = 0; i < size; i++) {
+//                    if (grid[i][j] == empty) {
+//                        continue;
+//                    }
+//                    Set<Integer> dom = getDomain(i, j);
+//                    if (dom.contains(num)) {
+//                        places.add(j);
+//                    }
+//                }
+//                if (places.size() == 1) {
+//                    char cc = getChar(num);
+//                    int r = places.iterator().next();
+//                    grid[r][j] = cc;
+//                    add(r, j, num, true);
+//                }
+//            }
+//        }
+    }
+
+    private boolean dfs(int r, int c, int recdepth, int forcedNum) {
         if (recdepth > maxRecdepth) {
             maxRecdepth = recdepth;
         }
@@ -444,42 +568,48 @@ public class Optimized implements SolverInterface {
             return true;
         }
         int b = root * (r / root) + (c / root);
-        // System.out.println("at (" + r + "," + c + ") - box #" + b);
-        Set<Integer> set = union(r, c);
-        /*System.out.println("available numbers: " + set);
-        if (row.get(r).size() != emptyRow.get(r).size()) {
-            System.out.println("-------------------------");
-            System.out.println("Problem!");
-            System.out.println("-------------------------");
-        }
-        if (col.get(c).size() != emptyCol.get(c).size()) {
-            System.out.println("-------------------------");
-            System.out.println("Problem!");
-            System.out.println("-------------------------");
-        }*/
-
         ArrayList<int[]> freqs = new ArrayList<int[]>();
-        for (int num : set) {
+        if (forcedNum != -1) {
             int[] pair = new int[2];
-            pair[0] = num;
-            pair[1] = getFreq(num, r, c);
+            pair[0] = forcedNum;
+            pair[1] = -1;
             freqs.add(pair);
         }
-
-        Comparator<int[]> compareByFreq = new Comparator<int[]>() {
-            public int compare(int[] ar1, int[] ar2) {
-                if (ar1[1] < ar2[1]) {
-                    return -1;
-                }
-                else if (ar1[1] == ar2[1]) {
-                    return 0;
-                }
-                else { // ar1[1] > ar2[1]
-                    return 1;
-                }
+        else {
+            // System.out.println("at (" + r + "," + c + ") - box #" + b);
+            Set<Integer> set = union(r, c);
+            /*System.out.println("available numbers: " + set);
+            if (row.get(r).size() != emptyRow.get(r).size()) {
+                System.out.println("-------------------------");
+                System.out.println("Problem!");
+                System.out.println("-------------------------");
             }
-        };
-        Collections.sort(freqs, compareByFreq);
+            if (col.get(c).size() != emptyCol.get(c).size()) {
+                System.out.println("-------------------------");
+                System.out.println("Problem!");
+                System.out.println("-------------------------");
+            }*/
+
+            for (int num : set) {
+                int[] pair = new int[2];
+                pair[0] = num;
+                pair[1] = getFreq(num, r, c);
+                freqs.add(pair);
+            }
+
+            Comparator<int[]> compareByFreq = new Comparator<int[]>() {
+                public int compare(int[] ar1, int[] ar2) {
+                    if (ar1[1] < ar2[1]) {
+                        return -1;
+                    } else if (ar1[1] == ar2[1]) {
+                        return 0;
+                    } else { // ar1[1] > ar2[1]
+                        return 1;
+                    }
+                }
+            };
+            Collections.sort(freqs, compareByFreq);
+        }
 //        if (freqs.size() == 0 || freqs.get(0)[1] >= 13) {
 //            return false;
 //        }
@@ -491,14 +621,27 @@ public class Optimized implements SolverInterface {
             //System.out.println("assign " + cc);
             grid[r][c] = cc;
             add(r, c, num, true);
-            int[] pos = getIndex();
-            if (recdepth % 30 == 0 && recdepth != lastRecdepth) {
+            if (recdepth % 20 == 0 && recdepth != lastRecdepth) {
                 lastRecdepth = recdepth;
                 System.out.println("GOING IN: " + Integer.valueOf(recdepth).toString());
                 show(grid);
             }
-            if (dfs(pos[0], pos[1], recdepth + 1)) {
-                return true;
+
+            int[] forced = getForcedVal();
+            if (forced[0] != -1) {
+                System.out.println(Arrays.toString(forced));
+                if (recdepth > 100) {
+                    return false;
+                }
+                if (dfs(forced[0], forced[1], recdepth + 1, forced[2])) {
+                    return true;
+                }
+            }
+            else {
+                int[] pos = getIndex();
+                if (dfs(pos[0], pos[1], recdepth + 1, -1)) {
+                    return true;
+                }
             }
             //System.out.println("change for (" + r + "," + c + ")");
             add(r, c, num, false);
@@ -541,7 +684,7 @@ public class Optimized implements SolverInterface {
         //System.out.println("empty cells at each row: " + emptyRow);
         //System.out.println("empty cells at each col: " + emptyCol);
         int[] pos = getIndex();
-        boolean ret = dfs(pos[0], pos[1], 0);
+        boolean ret = dfs(pos[0], pos[1], 0, -1);
         System.out.println("recursive calls: " + reccalls.toString());
         System.out.println("recursive depth: " + maxRecdepth.toString());
 
