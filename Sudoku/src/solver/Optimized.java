@@ -773,12 +773,21 @@ public class Optimized implements SolverInterface {
             if (reccalls % 10000 == 0) {
                 System.out.println("RECCALLS " + String.valueOf(reccalls));
                 System.out.println("DEPTH " + String.valueOf(recdepth));
+                int numFilled = 0;
+                for (int p = 0; p < size; p++) {
+                    for (int q = 0; q < size; q++) {
+                        if (currGrid[p][q] != empty) {
+                            numFilled++;
+                        }
+                    }
+                }
+                System.out.println("NUMFILLED " + String.valueOf(numFilled));
                 show(currGrid);
                 //show(grid);
             }
 
             int[] forced = getForcedVal(newGrid, newDomain, newRow, newCol, newBox);
-            if (false && forced[0] != -1) {
+            if (forced[0] != -1) {
                 System.out.println("FORCING: " + Arrays.toString(forced));
 //                if (recdepth > 100) {
 //                    return false;
