@@ -151,16 +151,7 @@ public class Optimized implements SolverInterface {
 //
 //    }
 
-    public boolean ac3(char[][] currGrid, ArrayList<ArrayList<Set<Integer>>> currDomain, Map<Integer, Set<Integer>> currRow, Map<Integer, Set<Integer>> currCol, Map<Integer, Set<Integer>> currBox) {
-        LinkedList<Integer> lst = new LinkedList<Integer>();
-        for (int i = 0; i < size; i++) {
-            for (int j = 0; j < size; j++) {
-                if (currGrid[i][j] != empty) {
-                    lst.addLast(i*size+j);
-                }
-            }
-        }
-
+    public boolean propagate(LinkedList<Integer> lst, char[][] currGrid, ArrayList<ArrayList<Set<Integer>>> currDomain, Map<Integer, Set<Integer>> currRow, Map<Integer, Set<Integer>> currCol, Map<Integer, Set<Integer>> currBox){
         while (lst.size() > 0) {
             Integer posint = lst.removeFirst();
             int[] pos = new int[2];
@@ -229,6 +220,24 @@ public class Optimized implements SolverInterface {
 
         }
         return true;
+    }
+
+    public boolean mac(int r, int c, char[][] currGrid, ArrayList<ArrayList<Set<Integer>>> currDomain, Map<Integer, Set<Integer>> currRow, Map<Integer, Set<Integer>> currCol, Map<Integer, Set<Integer>> currBox) {
+        LinkedList<Integer> lst = new LinkedList<Integer>();
+        lst.addLast(r*size+c);
+        return propagate(lst, currGrid, currDomain, currRow, currCol, currBox);
+    }
+
+    public boolean ac3(char[][] currGrid, ArrayList<ArrayList<Set<Integer>>> currDomain, Map<Integer, Set<Integer>> currRow, Map<Integer, Set<Integer>> currCol, Map<Integer, Set<Integer>> currBox) {
+        LinkedList<Integer> lst = new LinkedList<Integer>();
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+                if (currGrid[i][j] != empty) {
+                    lst.addLast(i*size+j);
+                }
+            }
+        }
+        return propagate(lst, currGrid, currDomain, currRow, currCol, currBox);
     }
 
     public Optimized(int n) {
@@ -668,8 +677,8 @@ public class Optimized implements SolverInterface {
             maxRecdepth = recdepth;
         }
         reccalls+=1;
-        if (reccalls > 10000000)
-            return null;
+//        if (reccalls > 10000000)
+//            return null;
         if (r == -1 || c == -1) {
             //System.out.println("done in dfs!");
             return currGrid;
@@ -731,6 +740,12 @@ public class Optimized implements SolverInterface {
             int num = freqs.get(i)[0];
             char cc = getChar(num);
             //System.out.println("assign " + cc);
+//            char[][] newGrid = currGrid;
+//            newGrid[r][c] = cc;
+//            ArrayList<ArrayList<Set<Integer>>> newDomain = currDomain;
+//            Map<Integer, Set<Integer>> newRow = currRow;
+//            Map<Integer, Set<Integer>> newCol = currCol;
+//            Map<Integer, Set<Integer>> newBox = currBox;
             char[][] newGrid = new char[size][size];
             for (int k = 0; k < size; k++) {
                 for (int l = 0; l < size; l++) {
@@ -756,7 +771,10 @@ public class Optimized implements SolverInterface {
                 newBox.put(k, new HashSet<Integer>(currBox.get(k)));
             }
 
-            if (!ac3(newGrid, newDomain, newRow, newCol, newBox)) {
+//            if (!ac3(newGrid, newDomain, newRow, newCol, newBox)) {
+//                return null;
+//            }
+            if (!mac(r, c, newGrid, newDomain, newRow, newCol, newBox)) {
                 return null;
             }
 
@@ -770,23 +788,27 @@ public class Optimized implements SolverInterface {
                 System.out.println("GOING IN: " + Integer.valueOf(recdepth).toString());
                 //show(grid);
             }
-            if (reccalls % 10000 == 0) {
+            if (reccalls % 100000 == 0) {
                 System.out.println("RECCALLS " + String.valueOf(reccalls));
                 System.out.println("DEPTH " + String.valueOf(recdepth));
-                int numFilled = 0;
-                for (int p = 0; p < size; p++) {
-                    for (int q = 0; q < size; q++) {
-                        if (currGrid[p][q] != empty) {
-                            numFilled++;
-                        }
-                    }
-                }
-                System.out.println("NUMFILLED " + String.valueOf(numFilled));
-                show(currGrid);
-                //show(grid);
+//                int numFilled = 0;
+//                for (int p = 0; p < size; p++) {
+//                    for (int q = 0; q < size; q++) {
+//                        if (currGrid[p][q] != empty) {
+//                            numFilled++;
+//                        }
+//                    }
+//                }
+//                System.out.println("NUMFILLED " + String.valueOf(numFilled));
+//                show(currGrid);
+//                //show(grid);
             }
 
             int[] forced = getForcedVal(newGrid, newDomain, newRow, newCol, newBox);
+//            int[] forced = new int[3];
+//            forced[0] = -1;
+//            forced[1] = -1;
+//            forced[2] = -1;
             if (forced[0] != -1) {
                 System.out.println("FORCING: " + Arrays.toString(forced));
 //                if (recdepth > 100) {
