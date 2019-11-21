@@ -126,6 +126,101 @@ public class Refactored implements SolverInterface {
         return true;
     }
 
+    private int[] getPosPairFromInt(Integer posint) {
+        int[] pos = new int[2];
+        pos[0] = posint / size;
+        pos[1] = posint % size;
+        return pos;
+    }
+
+    private Integer getIntFromPosPair(int i, int j) {
+        return i * size + j;
+    }
+
+
+    private boolean propagate(LinkedList<Integer> lst, char[][] currGrid, ArrayList<ArrayList<Set<Integer>>> currDomain) {
+        while (lst.size() > 0) {
+            Integer posint = lst.removeFirst();
+            int[] pos = getPosPairFromInt(posint);
+            int row = pos[0];
+            int col = pos[1];
+
+            if (currDomain.get(row).get(col).size() == 0) {
+                return false;
+            }
+            if (currGrid[pos[0]][pos[1]] == empty) {
+                currGrid[pos[0]][pos[1]] = getChar(currDomain.get(row).get(col).iterator().next());
+            }
+            int num = getNum(currGrid[pos[0]][pos[1]]);
+
+            for (int k = 0; k < size; k++) {
+                Set<Integer> rowmateDom = currDomain.get(row).get(k);
+                Set<Integer> colmateDom = currDomain.get(k).get(col);
+                int oldRowmateSize = rowmateDom.size();
+                int oldColmateSize = colmateDom.size();
+
+                if (k != col && currGrid[row][k] == empty) {
+                    rowmateDom.remove(num);
+                    int newRowmateSize = rowmateDom.size();
+                    if (newRowmateSize == 1 && oldRowmateSize > 1) {
+                        //int newnum = rowmateDom.iterator().next();
+                        //currGrid[row][k] = getChar(newnum);
+                        lst.add(getIntFromPosPair(row, k));
+                        //updateDomains(row, k, newnum, currGrid, currDomain);
+                    }
+                }
+
+                if (k != row && currGrid[k][col] == empty) {
+                    colmateDom.remove(num);
+                    int newColmateSize = colmateDom.size();
+                    if (newColmateSize == 1 && oldColmateSize > 1) {
+                        //int newnum = colmateDom.iterator().next();
+                        //currGrid[k][col] = getChar(newnum);
+                        lst.add(getIntFromPosPair(k, col));
+                        //updateDomains(row, k, newnum, currGrid, currDomain);
+                    }
+                }
+            }
+
+            int box = getBox(row, col);
+            for (int[] boxPos : getBoxPositions(box)) {
+                int i = boxPos[0];
+                int j = boxPos[1];
+
+                if (i == row && j == col) continue;
+                if (currGrid[i][j] != empty) continue;
+                Set<Integer> boxmateDom = currDomain.get(i).get(j);
+                int oldBoxmateSize = boxmateDom.size();
+                boxmateDom.remove(num);
+                int newBoxmateSize = boxmateDom.size();
+                if (newBoxmateSize == 1 && oldBoxmateSize > 1) {
+                    //int newnum = boxmateDom.iterator().next();
+                    //currGrid[i][j] = getChar(newnum);
+                    lst.add(getIntFromPosPair(i, j));
+                }
+            }
+        }
+        return true;
+    }
+
+    private boolean ac3(char[][] currGrid, ArrayList<ArrayList<Set<Integer>>> currDomain) {
+        LinkedList<Integer> lst = new LinkedList<Integer>();
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+                if (currGrid[i][j] != empty) {
+                    lst.addLast(getIntFromPosPair(i, j));
+                }
+            }
+        }
+        return propagate(lst, currGrid, currDomain);
+    }
+
+    private boolean mac(int r, int c, char[][] currGrid, ArrayList<ArrayList<Set<Integer>>> currDomain) {
+        LinkedList<Integer> lst = new LinkedList<Integer>();
+        lst.addLast(getIntFromPosPair(r, c));
+        return propagate(lst, currGrid, currDomain);
+    }
+
     private boolean init() {
         boolean ans = true;
         boolean res = checkGrid(grid);
@@ -133,10 +228,10 @@ public class Refactored implements SolverInterface {
         if (!res) {
             System.out.println("BAD");
         }
+        if (!ac3(grid, domain)) {
+            return false;
+        }
         return res;
-//        if (!ac3(grid, domain)) {
-//            return false;
-//        }
     }
 
     private char[][] getNewGrid(char[][] currGrid) {
@@ -227,11 +322,10 @@ public class Refactored implements SolverInterface {
         //show(currGrid);
 //        System.out.println("POS: " + String.valueOf(r) + ", " + String.valueOf(c));
 
+//        System.out.println("BOX: " + String.valueOf(box));
         int row = r;
         int col = c;
         int box = getBox(r, c);
-
-//        System.out.println("BOX: " + String.valueOf(box));
 
         for (int j = 0; j < size; j++) {
 //            System.out.println("ROWPOS: " + String.valueOf(row) + ", " + String.valueOf(j));
@@ -327,6 +421,7 @@ public class Refactored implements SolverInterface {
         if (reccalls % 100000 == 0) {
             System.out.println("RECCALLS : " + String.valueOf(reccalls));
             System.out.println("DEPTH " + String.valueOf(recdepth));
+            show(currGrid);
         }
 
         Set<Integer> dom = currDomain.get(r).get(c);
@@ -341,11 +436,11 @@ public class Refactored implements SolverInterface {
 
             ArrayList<ArrayList<Set<Integer>>> newDomain = getNewDomain(currDomain);
 
-            updateDomains(r, c, num, newGrid, newDomain);
+            //updateDomains(r, c, num, newGrid, newDomain);
 
-//            if (!mac(r, c, newGrid, newDomain)) {
-//                return null;
-//            }
+            if (!mac(r, c, newGrid, newDomain)) {
+                return null;
+            }
 
             if (isFull(newGrid)) {
                 return newGrid;
