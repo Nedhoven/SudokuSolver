@@ -32,6 +32,15 @@ public class Refactored implements SolverInterface {
         return num < 9 ? (char) (num + '1') : (char) (num + 'A' - 9);
     }
 
+    private void initDomain() {
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+                if (grid[i][j] != empty) {
+                    updateDomains(i, j, getNum(grid[i][j]), grid, domain);
+                }
+            }
+        }
+    }
 
     private void fillDomain() {
         domain = new ArrayList<ArrayList<Set<Integer>>>();
@@ -120,6 +129,7 @@ public class Refactored implements SolverInterface {
     private boolean init() {
         boolean ans = true;
         boolean res = checkGrid(grid);
+        initDomain();
         if (!res) {
             System.out.println("BAD");
         }
@@ -194,18 +204,31 @@ public class Refactored implements SolverInterface {
         return positions;
     }
 
-    private void add(int r, int c, int num, ArrayList<ArrayList<Set<Integer>>> currDomain) {
+    private void updateDomains(int r, int c, int num, char[][] currGrid, ArrayList<ArrayList<Set<Integer>>> currDomain) {
+        //show(currGrid);
+//        System.out.println("POS: " + String.valueOf(r) + ", " + String.valueOf(c));
+
         int row = r;
         int col = c;
         int box = getBox(r, c);
 
+//        System.out.println("BOX: " + String.valueOf(box));
+
         for (int j = 0; j < size; j++) {
+//            System.out.println("ROWPOS: " + String.valueOf(row) + ", " + String.valueOf(j));
+            if (j == c) continue;
+            if (currGrid[r][j] != empty) continue;
             currDomain.get(row).get(j).remove(num);
         }
         for (int i = 0; i < size; i++) {
+            if (i == r) continue;
+            if (currGrid[i][c] != empty) continue;
             currDomain.get(i).get(col).remove(num);
         }
         for (int[] pos : getBoxPositions(box)) {
+//            System.out.println("BOXPOS: " + String.valueOf(pos[0]) + ", " + String.valueOf(pos[1]));
+            if (pos[0] == r && pos[1] == c) continue;
+            if (currGrid[pos[0]][pos[1]] != empty) continue;
             currDomain.get(pos[0]).get(pos[1]).remove(num);
         }
     }
@@ -228,7 +251,7 @@ public class Refactored implements SolverInterface {
 
             ArrayList<ArrayList<Set<Integer>>> newDomain = getNewDomain(currDomain);
 
-            add(r, c, num, newDomain);
+            updateDomains(r, c, num, currGrid, newDomain);
 
 //            if (!mac(r, c, newGrid, newDomain)) {
 //                return null;
@@ -237,7 +260,7 @@ public class Refactored implements SolverInterface {
             int[] pos = getNextPos(r, c, currGrid);
 
             if (pos == null) {
-                return null;
+                return newGrid;
             }
 
             char[][] resGrid = dfs(pos[0], pos[1], newGrid, newDomain, recdepth + 1);
