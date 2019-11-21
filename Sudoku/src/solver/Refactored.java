@@ -161,24 +161,43 @@ public class Refactored implements SolverInterface {
         return newDomain;
     }
 
-    private int[] getNextPos(int r, int c, char[][] currGrid) {
-        int nextR = r;
-        int nextC = c;
-        do {
-            nextC++;
+//    private int[] getNextPos(int r, int c, char[][] currGrid, ArrayList<ArrayList<Set<Integer>>> currDomain) {
+//        int nextR = r;
+//        int nextC = c;
+//        do {
+//            nextC++;
+//
+//            if (nextC == size) {
+//                nextC = 0;
+//                nextR++;
+//            }
+//            if (nextR == size) {
+//                return null;
+//            }
+//        } while (currGrid[nextR][nextC] != empty);
+//        int[] pos = new int[2];
+//        pos[0] = nextR;
+//        pos[1] = nextC;
+//        return pos;
+//    }
 
-            if (nextC == size) {
-                nextC = 0;
-                nextR++;
+    private int[] getNextPos(int r, int c, char[][] currGrid, ArrayList<ArrayList<Set<Integer>>> currDomain) {
+        int minDomainSize = size + 1;
+        int[] minpos = new int[2];
+        minpos[0] = -1;
+        minpos[1] = -1;
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+                if (currGrid[i][j] != empty) continue;
+                int ijSize = currDomain.get(i).get(j).size();
+                if (ijSize < minDomainSize) {
+                    minDomainSize = ijSize;
+                    minpos[0] = i;
+                    minpos[1] = j;
+                }
             }
-            if (nextR == size) {
-                return null;
-            }
-        } while (currGrid[nextR][nextC] != empty);
-        int[] pos = new int[2];
-        pos[0] = nextR;
-        pos[1] = nextC;
-        return pos;
+        }
+        return minpos;
     }
 
     private int getBox(int r, int c) {
@@ -233,6 +252,18 @@ public class Refactored implements SolverInterface {
         }
     }
 
+    private boolean isFull(char[][] currGrid) {
+        boolean isFull = true;
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+                if (currGrid[i][j] == empty) {
+                    isFull = false;
+                }
+            }
+        }
+        return isFull;
+    }
+
     private char[][] dfs(int r, int c, char[][] currGrid, ArrayList<ArrayList<Set<Integer>>> currDomain, int recdepth) {
 //        if (recdepth > maxRecdepth) {
 //            maxRecdepth = recdepth;
@@ -251,17 +282,20 @@ public class Refactored implements SolverInterface {
 
             ArrayList<ArrayList<Set<Integer>>> newDomain = getNewDomain(currDomain);
 
-            updateDomains(r, c, num, currGrid, newDomain);
+            updateDomains(r, c, num, newGrid, newDomain);
 
 //            if (!mac(r, c, newGrid, newDomain)) {
 //                return null;
 //            }
 
-            int[] pos = getNextPos(r, c, currGrid);
-
-            if (pos == null) {
+            if (isFull(newGrid)) {
                 return newGrid;
             }
+            int[] pos = getNextPos(r, c, newGrid, newDomain);
+
+//            if (pos == null) {
+//                return newGrid;
+//            }
 
             char[][] resGrid = dfs(pos[0], pos[1], newGrid, newDomain, recdepth + 1);
             if (resGrid != null) {
