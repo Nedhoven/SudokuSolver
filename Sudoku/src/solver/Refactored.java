@@ -264,11 +264,34 @@ public class Refactored implements SolverInterface {
         return isFull;
     }
 
-    private int getFreq(int num, int row, int col, ArrayList<ArrayList<Set<Integer>>> currDomain,  Map<Integer, Set<Integer>> currRow, Map<Integer, Set<Integer>> currCol, Map<Integer, Set<Integer>> currBox) {
+    private int getFreq(int num, int row, int col, ArrayList<ArrayList<Set<Integer>>> currDomain) {
+        int rowFreq = 0;
+        int colFreq = 0;
+        int boxFreq = 0;
+        for (int k = 0; k < size; k++) {
+            if (currDomain.get(row).get(k).contains(num)) {
+                rowFreq++;
+            }
+            if (currDomain.get(k).get(col).contains(num)) {
+                colFreq++;
+            }
+        }
 
+        // box
+        int rb = root * (row/root);
+        int cb = root * (col/root);
+        for (int k = 0; k < root; k++) {
+            for (int l = 0; l < root; l++) {
+                if (currDomain.get(rb + k).get(cb + l).contains(num)) {
+                    boxFreq++;
+                }
+            }
+        }
+        return Math.max(rowFreq, Math.max(colFreq, boxFreq));
     }
 
-        private ArrayList<Integer> getValOrder(Set<Integer> dom) {
+    private ArrayList<Integer> getValOrder(int r, int c, Set<Integer> dom, ArrayList<ArrayList<Set<Integer>>> currDomain) {
+        ArrayList<int[]> freqs = new ArrayList<int[]>();
         for (int num : dom) {
             int[] pair = new int[2];
             pair[0] = num;
@@ -290,8 +313,8 @@ public class Refactored implements SolverInterface {
         Collections.sort(freqs, compareByFreq);
 
         ArrayList<Integer> vals = new ArrayList<Integer>();
-        for (var k = 0; k < freqs.length(); k++) {
-            vals.add(freqs[1]);
+        for (int k = 0; k < freqs.size(); k++) {
+            vals.add(freqs.get(k)[0]);
         }
         return vals;
     }
@@ -308,10 +331,10 @@ public class Refactored implements SolverInterface {
 
         Set<Integer> dom = currDomain.get(r).get(c);
 
-        ArrayList<Integer> vals = getValOrder(dom);
+        ArrayList<Integer> vals = getValOrder(r, c, dom, currDomain);
 
-        for (int k = 0; k < vals.length; k++) {
-            int num = vals[k];
+        for (int k = 0; k < vals.size(); k++) {
+            int num = vals.get(k);
             char[][] newGrid = getNewGrid(currGrid);
             char cc = getChar(num);
             newGrid[r][c] = cc;
