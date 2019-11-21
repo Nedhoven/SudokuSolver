@@ -145,7 +145,11 @@ public class Refactored implements SolverInterface {
             int row = pos[0];
             int col = pos[1];
 
+            //System.out.println("ROWCOL: " + String.valueOf(row) + " " + String.valueOf(col) + " " + posint.toString());
+
             if (currDomain.get(row).get(col).size() == 0) {
+//                show(currGrid);
+//                System.out.println(" BAD " + String.valueOf(row) + " " + String.valueOf(col));
                 return false;
             }
             if (currGrid[pos[0]][pos[1]] == empty) {
@@ -187,7 +191,7 @@ public class Refactored implements SolverInterface {
                 int i = boxPos[0];
                 int j = boxPos[1];
 
-                if (i == row && j == col) continue;
+                if (i == row || j == col) continue; // we dealt with rowmates and colmates earlier
                 if (currGrid[i][j] != empty) continue;
                 Set<Integer> boxmateDom = currDomain.get(i).get(j);
                 int oldBoxmateSize = boxmateDom.size();
@@ -218,6 +222,7 @@ public class Refactored implements SolverInterface {
     private boolean mac(int r, int c, char[][] currGrid, ArrayList<ArrayList<Set<Integer>>> currDomain) {
         LinkedList<Integer> lst = new LinkedList<Integer>();
         lst.addLast(getIntFromPosPair(r, c));
+        //System.out.println("STARTMAC " + String.valueOf(r) + " " + String.valueOf(c));
         return propagate(lst, currGrid, currDomain);
     }
 
@@ -435,9 +440,12 @@ public class Refactored implements SolverInterface {
             newGrid[r][c] = cc;
 
             ArrayList<ArrayList<Set<Integer>>> newDomain = getNewDomain(currDomain);
-
+            newDomain.get(r).set(c, new HashSet<Integer>());
+            newDomain.get(r).get(c).add(num);
             //updateDomains(r, c, num, newGrid, newDomain);
 
+//            System.out.println("RCCC " + String.valueOf(r) + " " + String.valueOf(c) + " " + cc);
+//            System.out.println(getChar(newDomain.get(r).get(c).iterator().next()));
             if (!mac(r, c, newGrid, newDomain)) {
                 return null;
             }
