@@ -264,6 +264,38 @@ public class Refactored implements SolverInterface {
         return isFull;
     }
 
+    private int getFreq(int num, int row, int col, ArrayList<ArrayList<Set<Integer>>> currDomain,  Map<Integer, Set<Integer>> currRow, Map<Integer, Set<Integer>> currCol, Map<Integer, Set<Integer>> currBox) {
+
+    }
+
+        private ArrayList<Integer> getValOrder(Set<Integer> dom) {
+        for (int num : dom) {
+            int[] pair = new int[2];
+            pair[0] = num;
+            pair[1] = getFreq(num, r, c, currDomain);
+            freqs.add(pair);
+        }
+
+        Comparator<int[]> compareByFreq = new Comparator<int[]>() {
+            public int compare(int[] ar1, int[] ar2) {
+                if (ar1[1] < ar2[1]) {
+                    return -1;
+                } else if (ar1[1] == ar2[1]) {
+                    return 0;
+                } else { // ar1[1] > ar2[1]
+                    return 1;
+                }
+            }
+        };
+        Collections.sort(freqs, compareByFreq);
+
+        ArrayList<Integer> vals = new ArrayList<Integer>();
+        for (var k = 0; k < freqs.length(); k++) {
+            vals.add(freqs[1]);
+        }
+        return vals;
+    }
+
     private char[][] dfs(int r, int c, char[][] currGrid, ArrayList<ArrayList<Set<Integer>>> currDomain, int recdepth) {
 //        if (recdepth > maxRecdepth) {
 //            maxRecdepth = recdepth;
@@ -275,7 +307,11 @@ public class Refactored implements SolverInterface {
         }
 
         Set<Integer> dom = currDomain.get(r).get(c);
-        for (int num : dom) {
+
+        ArrayList<Integer> vals = getValOrder(dom);
+
+        for (int k = 0; k < vals.length; k++) {
+            int num = vals[k];
             char[][] newGrid = getNewGrid(currGrid);
             char cc = getChar(num);
             newGrid[r][c] = cc;
