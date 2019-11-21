@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Set;
 import java.util.HashSet;
+import java.lang.Thread;
 
 public class Optimized implements SolverInterface {
     
@@ -162,31 +163,37 @@ public class Optimized implements SolverInterface {
             // update cell domains
             // row/col
             for (int k = 0; k < size; k++) {
-                int oldRowmateSize = currDomain.get(pos[0]).get(k).size();
-                int oldColmateSize = currDomain.get(k).get(pos[1]).size();
+                //int oldRowmateSize = currDomain.get(pos[0]).get(k).size();
+                //int oldColmateSize = currDomain.get(k).get(pos[1]).size();
+                int oldRowmateSize = getDomain(pos[0], k, currDomain, currRow, currCol, currBox).size();
+                int oldColmateSize = getDomain(k, pos[1], currDomain, currRow, currCol, currBox).size();
                 //System.out.println("REmoving: " + String.valueOf(pos[0]) + " " + String.valueOf(pos[1]) + " " + String.valueOf(k) + " " + getChar(num));
                 currDomain.get(pos[0]).get(k).remove(num);
                 currDomain.get(k).get(pos[1]).remove(num);
 
-                if (k != pos[1] && currGrid[pos[0]][k] == empty && currDomain.get(pos[0]).get(k).size() == 1 && oldRowmateSize > 1) {
+                if (k != pos[1] && currGrid[pos[0]][k] == empty && getDomain(pos[0], k, currDomain, currRow, currCol, currBox).size() == 1 && oldRowmateSize > 1) {
+//                    if (k != pos[1] && currGrid[pos[0]][k] == empty && currDomain.get(pos[0]).get(k).size() == 1 && oldRowmateSize > 1) {
+//                    int newnum = currDomain.get(pos[0]).get(k).iterator().next();
                     int newnum = currDomain.get(pos[0]).get(k).iterator().next();
-                    //System.out.println("set row " + String.valueOf(pos[0])  + " " + String.valueOf(k) + " " + getChar(num) + " " + getChar(newnum));
                     currGrid[pos[0]][k] = getChar(newnum);
-                    //show(currGrid);
                     if (!currRow.get(pos[0]).contains(newnum) || !currCol.get(k).contains(newnum) || !currBox.get(root*(pos[0]/root) + (k/root)).contains(newnum)) {
-                        //System.out.println("ROW PROBLEM!");
+                        System.out.println("set row " + String.valueOf(pos[0])  + " " + String.valueOf(k) + " " + getChar(num) + " " + getChar(newnum));
+                        show(currGrid);
+                        System.out.println("ROW PROBLEM!");
                         return false;
                     }
                     add(pos[0], k, newnum, true, currRow, currCol, currBox);
                     lst.addLast(pos[0]*size+k);
                 }
-                if (k != pos[0] && currGrid[k][pos[1]] == empty && currDomain.get(k).get(pos[1]).size() == 1 && oldColmateSize > 1) {
-                    int newnum = currDomain.get(k).get(pos[1]).iterator().next();
-                    //System.out.println("set col " + String.valueOf(k)  + " " + String.valueOf(pos[1]) + " " + getChar(num) + " " + getChar(newnum));
+//                if (k != pos[0] && currGrid[k][pos[1]] == empty && currDomain.get(k).get(pos[1]).size() == 1 && oldColmateSize > 1) {
+                if (k != pos[0] && currGrid[k][pos[1]] == empty && getDomain(k, pos[1], currDomain, currRow, currCol, currBox).size() == 1 && oldColmateSize > 1) {
+                    //int newnum = currDomain.get(k).get(pos[1]).iterator().next();
+                    int newnum = getDomain(k, pos[1], currDomain, currRow, currCol, currBox).iterator().next();
                     currGrid[k][pos[1]] = getChar(newnum);
-                    //show(currGrid);
                     if (!currRow.get(k).contains(newnum) || !currCol.get(pos[1]).contains(newnum) || !currBox.get(root*(k/root) + (pos[1]/root)).contains(newnum)) {
-                        //System.out.println("COL PROBLEM!");
+                        System.out.println("set col " + String.valueOf(k)  + " " + String.valueOf(pos[1]) + " " + getChar(num) + " " + getChar(newnum));
+                        show(currGrid);
+                        System.out.println("COL PROBLEM!");
                         return false;
                     }
                     add(k, pos[1], newnum, true, currRow, currCol, currBox);
@@ -200,16 +207,19 @@ public class Optimized implements SolverInterface {
             for (int k = 0; k < root; k++) {
                 for (int l = 0; l < root; l++) {
                     if (rb + k == pos[0] && cb + l == pos[1]) continue;
-                    int oldBoxmateSize = currDomain.get(rb + k).get(cb + l).size();
+                    //int oldBoxmateSize = currDomain.get(rb + k).get(cb + l).size();
+                    int oldBoxmateSize = getDomain(rb + k, cb + l, currDomain, currRow, currCol, currBox).size();
                     //System.out.println("REmoving: " + String.valueOf(rb + k) + " " + String.valueOf(cb + l) + " " + getChar(num));
                     currDomain.get(rb + k).get(cb + l).remove(num);
-                    if (currGrid[rb + k][cb + l] == empty && currDomain.get(rb + k).get(cb + l).size() == 1 && oldBoxmateSize > 1) {
-                        int newnum = currDomain.get(rb + k).get(cb + l).iterator().next();
-                        //System.out.println("set box " + String.valueOf(rb+k)  + " " + String.valueOf(cb+l) + " " + getChar(num) + " " + getChar(newnum) + " " + String.valueOf(pos[0]) + " " + String.valueOf(pos[1]));
+//                    if (currGrid[rb + k][cb + l] == empty && currDomain.get(rb + k).get(cb + l).size() == 1 && oldBoxmateSize > 1) {
+                    if (currGrid[rb + k][cb + l] == empty && getDomain(rb + k, cb + l, currDomain, currRow, currCol, currBox).size() == 1 && oldBoxmateSize > 1) {
+                        //int newnum = currDomain.get(rb + k).get(cb + l).iterator().next();
+                        int newnum = getDomain(rb + k, cb + l, currDomain, currRow, currCol, currBox).iterator().next();
                         currGrid[rb + k][cb + l] = getChar(newnum);
-                        //show(currGrid);
                         if (!currRow.get(rb+k).contains(newnum) || !currCol.get(cb+l).contains(newnum) || !currBox.get(root*((rb+k)/root) + ((cb+l)/root)).contains(newnum)) {
-                            //System.out.println("BOX PROBLEM!");
+                            System.out.println("set box " + String.valueOf(rb+k)  + " " + String.valueOf(cb+l) + " " + getChar(num) + " " + getChar(newnum) + " " + String.valueOf(pos[0]) + " " + String.valueOf(pos[1]));
+                            show(currGrid);
+                            System.out.println("BOX PROBLEM!");
                             return false;
                         }
                         add(rb+k, cb+l, newnum, true, currRow, currCol, currBox);
@@ -362,19 +372,19 @@ public class Optimized implements SolverInterface {
         res[1] = argminJ;
         return res;
     }
-//    private int[] getIndex() {
+//    private int[] getIndex(char[][] currGrid, ArrayList<ArrayList<Set<Integer>>> currDomain, Map<Integer, Set<Integer>> currRow, Map<Integer, Set<Integer>> currCol, Map<Integer, Set<Integer>> currBox) {
 //        int[] res = new int[2];
 //        int minRow = size + 1;
 //        int minCol = size + 1;
 //        int r = -1;
 //        int c = -1;
 //        for (int i = 0; i < size; i++) {
-//            if (!row.get(i).isEmpty() && row.get(i).size() < minRow) {
-//                minRow = row.get(i).size();
+//            if (!currRow.get(i).isEmpty() && currRow.get(i).size() < minRow) {
+//                minRow = currRow.get(i).size();
 //                r = i;
 //            }
-//            if (!col.get(i).isEmpty() && col.get(i).size() < minCol) {
-//                minCol = col.get(i).size();
+//            if (!currCol.get(i).isEmpty() && currCol.get(i).size() < minCol) {
+//                minCol = currCol.get(i).size();
 //                c = i;
 //            }
 //        }
@@ -394,8 +404,8 @@ public class Optimized implements SolverInterface {
 //            c = -1;
 //            //System.out.println("empty cells: " + emptyRow.get(r));
 //            for (int j : emptyRow.get(r)) {
-//                if (!col.get(j).isEmpty() && col.get(j).size() < minCol) {
-//                    minCol = col.get(j).size();
+//                if (!currCol.get(j).isEmpty() && currCol.get(j).size() < minCol) {
+//                    minCol = currCol.get(j).size();
 //                    c = j;
 //                }
 //            }
@@ -408,8 +418,8 @@ public class Optimized implements SolverInterface {
 //            r = -1;
 //            //System.out.println("empty cells: " + emptyCol.get(c));
 //            for (int i : emptyCol.get(c)) {
-//                if (!row.get(i).isEmpty() && row.get(i).size() < minRow) {
-//                    minRow = row.get(i).size();
+//                if (!currRow.get(i).isEmpty() && currRow.get(i).size() < minRow) {
+//                    minRow = currRow.get(i).size();
 //                    r = i;
 //                }
 //            }
@@ -670,6 +680,7 @@ public class Optimized implements SolverInterface {
     }
 
     private char[][] dfs(int r, int c, int recdepth, int forcedNum, char[][] currGrid, ArrayList<ArrayList<Set<Integer>>> currDomain,  Map<Integer, Set<Integer>> currRow, Map<Integer, Set<Integer>> currCol, Map<Integer, Set<Integer>> currBox) {
+        //System.out.println("TRYING: " + String.valueOf(r) + ", " + String.valueOf(c));
         //System.out.println(String.valueOf(r) + " " + String.valueOf(c));
         //show(currGrid);
         //System.out.println();
@@ -735,7 +746,10 @@ public class Optimized implements SolverInterface {
 //        show(newGrid);
 //        System.out.println("****");
 
-
+//        if (freqs.size() == 0) {
+//            System.out.println("SOL: " + String.valueOf(r) + " " + String.valueOf(c));
+//            show(currGrid);
+//        }
         for (int i = 0; i < freqs.size(); i++) {
             int num = freqs.get(i)[0];
             char cc = getChar(num);
@@ -774,15 +788,15 @@ public class Optimized implements SolverInterface {
 //            if (!ac3(newGrid, newDomain, newRow, newCol, newBox)) {
 //                return null;
 //            }
-            if (!mac(r, c, newGrid, newDomain, newRow, newCol, newBox)) {
-                return null;
-            }
 
 
             if (forcedNum != -1) {
                 System.out.println("ADDING " + String.valueOf(r) + " " + String.valueOf(c) + " " + String.valueOf(num));
             }
             add(r, c, num, true, newRow, newCol, newBox);
+            if (!mac(r, c, newGrid, newDomain, newRow, newCol, newBox)) {
+                return null;
+            }
             if (recdepth % 40 == 0 && recdepth != lastRecdepth) {
                 lastRecdepth = recdepth;
                 System.out.println("GOING IN: " + Integer.valueOf(recdepth).toString());
@@ -800,15 +814,15 @@ public class Optimized implements SolverInterface {
 //                    }
 //                }
 //                System.out.println("NUMFILLED " + String.valueOf(numFilled));
-//                show(currGrid);
+                show(currGrid);
 //                //show(grid);
             }
 
-            int[] forced = getForcedVal(newGrid, newDomain, newRow, newCol, newBox);
-//            int[] forced = new int[3];
-//            forced[0] = -1;
-//            forced[1] = -1;
-//            forced[2] = -1;
+            //int[] forced = getForcedVal(newGrid, newDomain, newRow, newCol, newBox);
+            int[] forced = new int[3];
+            forced[0] = -1;
+            forced[1] = -1;
+            forced[2] = -1;
             if (forced[0] != -1) {
                 System.out.println("FORCING: " + Arrays.toString(forced));
 //                if (recdepth > 100) {
@@ -820,8 +834,29 @@ public class Optimized implements SolverInterface {
                 }
             }
             else {
-                int[] pos = getIndex(newGrid, newDomain, newRow, newCol, newBox);
-                char[][] resGrid = dfs(pos[0], pos[1], recdepth + 1, -1, newGrid, newDomain, newRow, newCol, newBox);
+                //int[] pos = getIndex(newGrid, newDomain, newRow, newCol, newBox);
+                //char[][] resGrid = dfs(pos[0], pos[1], recdepth + 1, -1, newGrid, newDomain, newRow, newCol, newBox);
+                int nextR = r;
+                int nextC = c;
+                do {
+                    nextC++;
+
+                    if (nextC == size) {
+                        nextC = 0;
+                        nextR++;
+                    }
+                    if (nextR == size) {
+                        return null;
+                    }
+                } while (currGrid[nextR][nextC] != empty);
+//                    System.out.println(String.valueOf(r) + " " + String.valueOf(c) + " " + String.valueOf(nextR) + " " + String.valueOf(nextC));
+//                try{
+//                    Thread.sleep(500);
+//                }
+//                catch(Exception e){
+//
+//                }
+                char[][] resGrid = dfs(nextR, nextC, recdepth + 1, -1, newGrid, newDomain, newRow, newCol, newBox);
                 if (resGrid != null) {
                     return resGrid;
                 }
@@ -866,8 +901,9 @@ public class Optimized implements SolverInterface {
         //System.out.println("box: " + box);
         //System.out.println("empty cells at each row: " + emptyRow);
         //System.out.println("empty cells at each col: " + emptyCol);
-        int[] pos = getIndex(grid, domain, row, col, box);
-        char[][] resGrid = dfs(pos[0], pos[1], 0, -1, grid, domain, row, col, box);
+        //int[] pos = getIndex(grid, domain, row, col, box);
+        //char[][] resGrid = dfs(pos[0], pos[1], 0, -1, grid, domain, row, col, box);
+        char[][] resGrid = dfs(0, 0, 0, -1, grid, domain, row, col, box);
         System.out.println("recursive calls: " + reccalls.toString());
         System.out.println("recursive depth: " + maxRecdepth.toString());
 

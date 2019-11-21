@@ -54,7 +54,7 @@ public class Example {
             {
                 char[][] board = new char[16][16];
                 try {
-                    File f = new File("/mnt/c/Users/danie/Downloads/hexa-21.txt");
+                    File f = new File("/mnt/c/Users/danie/Downloads/hexa-20.txt");
                     BufferedReader br = new BufferedReader(new FileReader(f));
                     String st;
                     int i = 0;

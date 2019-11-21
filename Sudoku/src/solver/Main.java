@@ -37,7 +37,7 @@ public class Main {
         int n = board.length;
         SolverInterface s;
         if (useOptimized) {
-            s = new Optimized(16);
+            s = new Refactored(16);
         }
         else {
             s = new Solver(n);
