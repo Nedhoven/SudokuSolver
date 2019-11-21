@@ -42,6 +42,7 @@ public class Main {
         else {
             s = new Solver(n);
         }
+        show(board);
         char[][] ans = s.solveSudoku(board);
         if (ans == null) {
             System.err.println("SUDOKU UNSOLVEABLE!");
