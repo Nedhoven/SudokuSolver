@@ -247,7 +247,10 @@ public class Optimized implements SolverInterface {
                 }
             }
         }
-        return propagate(lst, currGrid, currDomain, currRow, currCol, currBox);
+        boolean ret = propagate(lst, currGrid, currDomain, currRow, currCol, currBox);
+        System.out.println("AFTER AC3");
+        show(currGrid);
+        return ret;
     }
 
     public Optimized(int n) {

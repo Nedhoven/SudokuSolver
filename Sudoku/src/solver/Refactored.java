@@ -40,6 +40,7 @@ public class Refactored implements SolverInterface {
                 }
             }
         }
+        System.out.println("HMM " + getChar(domain.get(3).get(0).iterator().next()));
     }
 
     private void fillDomain() {
@@ -140,6 +141,8 @@ public class Refactored implements SolverInterface {
 
     private boolean propagate(LinkedList<Integer> lst, char[][] currGrid, ArrayList<ArrayList<Set<Integer>>> currDomain) {
         while (lst.size() > 0) {
+            System.out.println("HMM " + getChar(currDomain.get(3).get(0).iterator().next()));
+
             Integer posint = lst.removeFirst();
             int[] pos = getPosPairFromInt(posint);
             int row = pos[0];
@@ -156,12 +159,19 @@ public class Refactored implements SolverInterface {
                 System.out.println(" BAD " + String.valueOf(row) + " " + String.valueOf(col));
                 return false;
             }
-            if (currGrid[pos[0]][pos[1]] == empty) {
-                currGrid[pos[0]][pos[1]] = getChar(currDomain.get(row).get(col).iterator().next());
+            for (int domNum : currDomain.get(row).get(col)) {
+                if (currGrid[pos[0]][pos[1]] == empty) {
+                    currGrid[pos[0]][pos[1]] = getChar(domNum);
+                }
+
+                if (getChar(domNum) == '0') {
+                    System.out.println("WHOOPS");
+                }
+                System.out.println("SIZE " + currDomain.get(row).get(col).size() + " " + getChar(domNum));
             }
             int num = getNum(currGrid[pos[0]][pos[1]]);
 
-            System.out.println("CURRENT POS: " + String.valueOf(row) + " " + String.valueOf(col));
+            System.out.println("CURRENT POS: " + String.valueOf(row) + " " + String.valueOf(col) + " " + currGrid[row][col]);
 
             for (int k = 0; k < size; k++) {
                 Set<Integer> rowmateDom = currDomain.get(row).get(k);
@@ -169,12 +179,23 @@ public class Refactored implements SolverInterface {
 
                 if (k != col && currGrid[row][k] == empty) {
                     int oldRowmateSize = rowmateDom.size();
+                    System.out.println("PRUNING " + getChar(num) + " from " + String.valueOf(row) + " " + String.valueOf(k));
+                    System.out.print("OLD DOMAIN OF " + String.valueOf(row) + String.valueOf(k));
+                    for (int d : rowmateDom) {
+                        System.out.print(" " + getChar(d));
+                    }
+                    System.out.print('\n');
                     rowmateDom.remove(num);
                     int newRowmateSize = rowmateDom.size();
+                    System.out.print("NEW DOMAIN OF " + String.valueOf(row) + String.valueOf(k) +  " " + String.valueOf(oldRowmateSize) + " " + String.valueOf(newRowmateSize));
+                    for (int d : rowmateDom) {
+                        System.out.print(" " + getChar(d));
+                    }
+                    System.out.println('\n');
                     if (newRowmateSize == 1 && oldRowmateSize > 1) {
                         //int newnum = rowmateDom.iterator().next();
                         //currGrid[row][k] = getChar(newnum);
-                        System.out.println("ADDING ROWPOS: " + String.valueOf(row) + " " + String.valueOf(k));
+                        System.out.print("ADDING ROWPOS: " + String.valueOf(row) + " " + String.valueOf(k));
                         lst.add(getIntFromPosPair(row, k));
                         //updateDomains(row, k, newnum, currGrid, currDomain);
                     }
@@ -182,8 +203,19 @@ public class Refactored implements SolverInterface {
 
                 if (k != row && currGrid[k][col] == empty) {
                     int oldColmateSize = colmateDom.size();
+                    System.out.println("PRUNING " + getChar(num) + " from " + String.valueOf(k) + " " + String.valueOf(col));
+                    System.out.print("OLD DOMAIN OF " + String.valueOf(k) + String.valueOf(col));
+                    for (int d : colmateDom) {
+                        System.out.print(" " + getChar(d));
+                    }
+                    System.out.print('\n');
                     colmateDom.remove(num);
                     int newColmateSize = colmateDom.size();
+                    System.out.print("NEW DOMAIN OF " + String.valueOf(k) + String.valueOf(col) +  " " + String.valueOf(oldColmateSize) + " " + String.valueOf(newColmateSize));
+                    for (int d : colmateDom) {
+                        System.out.print(" " + getChar(d));
+                    }
+                    System.out.print('\n');
                     if (newColmateSize == 1 && oldColmateSize > 1) {
                         //int newnum = colmateDom.iterator().next();
                         //currGrid[k][col] = getChar(newnum);
@@ -203,8 +235,20 @@ public class Refactored implements SolverInterface {
                 if (currGrid[i][j] != empty) continue;
                 Set<Integer> boxmateDom = currDomain.get(i).get(j);
                 int oldBoxmateSize = boxmateDom.size();
+                System.out.println("PRUNING " + getChar(num) + " from " + String.valueOf(i) + " " + String.valueOf(j));
+                System.out.print("OLD DOMAIN OF " + String.valueOf(i) + String.valueOf(j));
+                for (int d : boxmateDom) {
+                    System.out.print(" " + getChar(d));
+                }
+                System.out.println('\n');
                 boxmateDom.remove(num);
                 int newBoxmateSize = boxmateDom.size();
+
+                System.out.print("NEW DOMAIN OF " + String.valueOf(i) + String.valueOf(j) +  " " + String.valueOf(oldBoxmateSize) + " " + String.valueOf(newBoxmateSize));
+                for (int d : boxmateDom) {
+                    System.out.print(" " + getChar(d));
+                }
+                System.out.println('\n');
                 if (newBoxmateSize == 1 && oldBoxmateSize > 1) {
                     //int newnum = boxmateDom.iterator().next();
                     //currGrid[i][j] = getChar(newnum);
@@ -223,11 +267,17 @@ public class Refactored implements SolverInterface {
                 if (currGrid[i][j] != empty) {
                     currDomain.get(i).set(j, new HashSet<Integer>());
                     currDomain.get(i).get(j).add(getNum(currGrid[i][j]));
+                }
+                if (currDomain.get(i).get(j).size() == 1) {
                     lst.addLast(getIntFromPosPair(i, j));
+                    System.out.println("ADDING " + String.valueOf(i) + " " + String.valueOf(j));
                 }
             }
         }
-        return propagate(lst, currGrid, currDomain);
+        boolean ret = propagate(lst, currGrid, currDomain);
+        System.out.println("AFTER AC3");
+        show(currGrid);
+        return ret;
     }
 
     private boolean mac(int r, int c, char[][] currGrid, ArrayList<ArrayList<Set<Integer>>> currDomain) {
@@ -453,13 +503,13 @@ public class Refactored implements SolverInterface {
             ArrayList<ArrayList<Set<Integer>>> newDomain = getNewDomain(currDomain);
             newDomain.get(r).set(c, new HashSet<Integer>());
             newDomain.get(r).get(c).add(num);
-            //updateDomains(r, c, num, newGrid, newDomain);
+            updateDomains(r, c, num, newGrid, newDomain);
 
 //            System.out.println("RCCC " + String.valueOf(r) + " " + String.valueOf(c) + " " + cc);
 //            System.out.println(getChar(newDomain.get(r).get(c).iterator().next()));
-            if (!mac(r, c, newGrid, newDomain)) {
-                return null;
-            }
+//            if (!mac(r, c, newGrid, newDomain)) {
+//                return null;
+//            }
 
             if (isFull(newGrid)) {
                 return newGrid;
