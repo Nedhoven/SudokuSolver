@@ -77,10 +77,10 @@ public class Refactored implements SolverInterface {
         domainChange[2] = domSize;
         domainChange[3] = domSize - 1;
         if (domSize <= 1) {
-            System.out.println("PRUNED TO ZERO");
+//            System.out.println("PRUNED TO ZERO");
 //
 //            System.out.println("SIZE");
-            System.out.println(domSize);
+//            System.out.println(domSize);
         }
         return domainChange;
     }
@@ -168,7 +168,7 @@ public class Refactored implements SolverInterface {
                     domain.get(i).get(j).add(num);
                 }
                 domainSize.get(i).add(size);
-                System.out.println(domain.get(i).get(j).size());
+//                System.out.println(domain.get(i).get(j).size());
 //                domainSize.get(i).set(j, size);
             }
         }
@@ -519,8 +519,8 @@ public class Refactored implements SolverInterface {
             if (grid[r][j] != empty) continue;
             int[] domainChange = removeFromDomain(row, j, num);
             if (domainChange != null) {
-                System.out.println("RES SIZE");
-                System.out.println(domainChange[3]);
+//                System.out.println("RES SIZE");
+//                System.out.println(domainChange[3]);
                 if (domainChange[3] == 0) {
                     return null;
                 }
@@ -533,8 +533,8 @@ public class Refactored implements SolverInterface {
             //removeFromDomain(i, col, num);
             int[] domainChange = removeFromDomain(i, col, num);
             if (domainChange != null) {
-                System.out.println("RES SIZE");
-                System.out.println(domainChange[3]);
+//                System.out.println("RES SIZE");
+//                System.out.println(domainChange[3]);
                 if (domainChange[3] == 0) {
                     return null;
                 }
@@ -548,8 +548,8 @@ public class Refactored implements SolverInterface {
             //removeFromDomain(pos[0], pos[1], num);
             int[] domainChange = removeFromDomain(pos[0], pos[1], num);
             if (domainChange != null) {
-                System.out.println("RES SIZE");
-                System.out.println(domainChange[3]);
+//                System.out.println("RES SIZE");
+//                System.out.println(domainChange[3]);
                 if (domainChange[3] == 0) {
                     return null;
                 }
@@ -653,8 +653,8 @@ public class Refactored implements SolverInterface {
             c = pos[1];
             dom = domain.get(r).get(c);
             vals = getValOrder(r, c, dom);
-            System.out.println("VALS SIZE FOR  " + r + " " + c);
-            System.out.println(vals.size());
+//            System.out.println("VALS SIZE FOR  " + r + " " + c);
+//            System.out.println(vals.size());
             depth++;
             reccalls+=1;
             if (reccalls % 1000000 == 0) {
@@ -664,18 +664,18 @@ public class Refactored implements SolverInterface {
                 System.out.println();
             }
             if (currValI == vals.size()) {
-                System.out.println(r);
-                System.out.println(c);
-                System.out.println(reccalls);
-                System.out.println(vals.size());
-                System.out.println(history);
-                System.out.println(depth);
+//                System.out.println(r);
+//                System.out.println(c);
+//                System.out.println(reccalls);
+//                System.out.println(vals.size());
+//                System.out.println(history);
+//                System.out.println(depth);
                 // backtrack!
                 depth--;
                 if (depth == 0) {
                     return null;
                 }
-                System.out.println("POPPING");
+//                System.out.println("POPPING");
                 r = prevEntry.r;
                 c = prevEntry.c;
                 currValI = prevEntry.valI + 1;
@@ -686,7 +686,7 @@ public class Refactored implements SolverInterface {
             char cc = getChar(num);
             if (!pushGrid(r, c, cc, currValI, vals)) {
                 // backtrack!
-                System.out.println("BACK");
+//                System.out.println("BACK");
                 prevEntry = popGrid();
                 currValI++;
                 depth--;
@@ -695,9 +695,9 @@ public class Refactored implements SolverInterface {
             if (isFull(grid)) {
                 return grid;
             }
-            System.out.println("PUSHING WORKED");
-            System.out.println(depth);
-            System.out.println(history);
+//            System.out.println("PUSHING WORKED");
+//            System.out.println(depth);
+//            System.out.println(history);
             //pushing worked, so keep searching
 //                if (!mac(r, c, newGrid, newDomain)) {
 //                    continue;
