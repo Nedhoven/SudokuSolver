@@ -29,7 +29,7 @@ public class Main {
     }
     
     public static char[][] getBoard() {
-        Example ex = new Example(16);
+        Example ex = new Example(25);
         return ex.getGrid();
     }
     
@@ -37,7 +37,7 @@ public class Main {
         int n = board.length;
         SolverInterface s;
         if (useOptimized) {
-            s = new Refactored(16);
+            s = new Refactored(25);
         }
         else {
             s = new Solver(n);
