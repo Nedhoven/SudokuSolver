@@ -98,15 +98,18 @@ public class Refactored implements SolverInterface {
     }
 
     private boolean pushGrid(int r, int c, char cc, int currValI, ArrayList<Integer> vals) {
+        boolean pruneDeadend = false;
         int num = getNum(cc);
         grid[r][c] = cc;
 
         ArrayList<Integer> nums = new ArrayList<Integer>();
         nums.add(num);
         int[] change = setDomain(r, c, nums);
-        Set<int[]> domainChanges = pruneDomains(r, c, num);
-        if (domainChanges == null) {
-            return false;
+        PruneResult pruneRes = pruneDomains(r, c, num);
+        Set<int[]> domainChanges = pruneRes.changes;
+        if (pruneRes.hasZero) {
+            pruneDeadend = true;
+//            domainChanges = new HashSet<int[]>();
         }
         domainChanges.add(change);
 
@@ -117,13 +120,18 @@ public class Refactored implements SolverInterface {
         entry.vals = vals;
         entry.domainChanges = domainChanges;
         history.push(entry);
-        return true;
+        return !pruneDeadend;
     }
 
     private Entry popGrid() {
         Entry currEntry = history.pop();
         int r = currEntry.r;
         int c = currEntry.c;
+//        if (r == 3 && c == 8) {
+//            System.out.println("POPPINGGRID");
+//            System.out.println(r);
+//            System.out.println(c);
+//        }
         grid[r][c] = empty;
         Set<int[]> changes = currEntry.domainChanges;
         for (int[] change : changes) {
@@ -157,7 +165,7 @@ public class Refactored implements SolverInterface {
         for (int i = 0; i < size; i++) {
             for (int j = 0; j < size; j++) {
                 if (grid[i][j] != empty) {
-                    if (pruneDomains(i, j, getNum(grid[i][j])) == null) {
+                    if (pruneDomains(i, j, getNum(grid[i][j])).hasZero) {
                         System.out.println("BADUHOH");
                         return false;
                     }
@@ -519,11 +527,13 @@ public class Refactored implements SolverInterface {
         return positions;
     }
 
-    private Set<int[]> pruneDomains(int r, int c, int num) {
+    private PruneResult pruneDomains(int r, int c, int num) {
         //show(currGrid);
 //        System.out.println("POS: " + String.valueOf(r) + ", " + String.valueOf(c));
 
 //        System.out.println("BOX: " + String.valueOf(box));
+        boolean hasZero = false;
+
         int row = r;
         int col = c;
         int box = getBox(r, c);
@@ -539,7 +549,7 @@ public class Refactored implements SolverInterface {
 //                System.out.println("RES SIZE");
 //                System.out.println(domainChange[3]);
                 if (domainChange[3] == 0) {
-                    return null;
+                    hasZero = true;
                 }
                 domainChanges.add(domainChange);
             }
@@ -553,7 +563,7 @@ public class Refactored implements SolverInterface {
 //                System.out.println("RES SIZE");
 //                System.out.println(domainChange[3]);
                 if (domainChange[3] == 0) {
-                    return null;
+                    hasZero = true;
                 }
                 domainChanges.add(domainChange);
             }
@@ -568,12 +578,12 @@ public class Refactored implements SolverInterface {
 //                System.out.println("RES SIZE");
 //                System.out.println(domainChange[3]);
                 if (domainChange[3] == 0) {
-                    return null;
+                    hasZero = true;
                 }
                 domainChanges.add(domainChange);
             }
         }
-        return domainChanges;
+        return new PruneResult(domainChanges, hasZero);
     }
 
     private boolean isFull(char[][] currGrid) {
@@ -662,7 +672,7 @@ public class Refactored implements SolverInterface {
 //        if (reccalls > 15) {
 //            return null;
 //        }
-        int depth = 0;
+        int depth = 1;
         int currValI = 0;
         //int[] pos = getNextPos(0, -1);
         //int r = pos[0];
@@ -673,20 +683,20 @@ public class Refactored implements SolverInterface {
         ArrayList<Integer> dom = new ArrayList<Integer>();
         ArrayList<Integer> vals = new ArrayList<Integer>();
         Entry prevEntry = null;
-
-
-
+        pos = getNextPos(r, c);
+        r = pos[0];
+        c = pos[1];
+        dom = domain.get(r).get(c);
+        vals = getValOrder(r, c, dom);
+        boolean backtracking = false;
         do {
-            pos = getNextPos(r, c);
-            r = pos[0];
-            c = pos[1];
-            dom = domain.get(r).get(c);
-            vals = getValOrder(r, c, dom);
-            System.out.println("VALS SIZE FOR  " + r + " " + c);
-            System.out.println(vals.size());
-            System.out.println(grid[r][c]);
-            System.out.println(currValI);
-            depth++;
+            if (vals.size() == 0) {
+                System.out.println("BADBADBAD");
+            }
+//            System.out.println("VALS SIZE FOR  " + r + " " + c);
+//            System.out.println(vals.size());
+//            System.out.println(grid[r][c]);
+//            System.out.println(currValI);
             reccalls = reccalls.add(BigInteger.valueOf((long)1));
             if (reccalls.mod(BigInteger.valueOf((long)10000000)).equals(BigInteger.valueOf((long)0))) {
                 System.out.println("RECCALLS : " + String.valueOf(reccalls));
@@ -707,25 +717,47 @@ public class Refactored implements SolverInterface {
                     return null;
                 }
 //                System.out.println("POPPING");
+//                if (backtracking) {
+////                    System.out.println("BACKPOP");
+//                    prevEntry = popGrid();
+//                }
+                backtracking = true;
                 r = prevEntry.r;
                 c = prevEntry.c;
                 currValI = prevEntry.valI + 1;
                 vals = prevEntry.vals;
+                prevEntry = popGrid();
                 continue;
             }
+            backtracking = false;
             int num = vals.get(currValI);
             char cc = getChar(num);
+            depth++;
+//            if (r == 3 && c == 8) {
+//                System.out.println("PUSHING");
+//                System.out.println(grid[r][c]);
+//            }
             if (!pushGrid(r, c, cc, currValI, vals)) {
                 // backtrack!
 //                System.out.println("BACK");
                 prevEntry = popGrid();
                 currValI++;
                 depth--;
+//                if (r == 3 && c == 8) {
+//                    System.out.println("POPPED");
+//                    System.out.println(grid[r][c]);
+//                }
                 continue;
             }
             if (isFull(grid)) {
                 return grid;
             }
+            // pushing worked, so continue
+            pos = getNextPos(r, c);
+            r = pos[0];
+            c = pos[1];
+            dom = domain.get(r).get(c);
+            vals = getValOrder(r, c, dom);
             currValI = 0;
 //            System.out.println("PUSHING WORKED");
 //            System.out.println(depth);
