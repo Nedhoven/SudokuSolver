@@ -12,6 +12,8 @@ import java.util.HashSet;
 import java.util.Stack;
 import java.lang.Thread;
 
+import java.math.BigInteger;
+
 public class Refactored implements SolverInterface {
 
     private char[][] grid;
@@ -24,7 +26,7 @@ public class Refactored implements SolverInterface {
     private ArrayList<ArrayList<Integer>> domainSize;
     private Stack<Entry> history;
 
-    private Integer reccalls = 0;
+    private BigInteger reccalls = BigInteger.valueOf((long)0);
     private Integer maxRecdepth = 0;
     private int lastRecdepth = 0;
 
@@ -78,8 +80,8 @@ public class Refactored implements SolverInterface {
         domainChange[3] = domSize - 1;
         if (domSize <= 1) {
 //            System.out.println("PRUNED TO ZERO");
-//
-//            System.out.println("SIZE");
+////
+////            System.out.println("SIZE");
 //            System.out.println(domSize);
         }
         return domainChange;
@@ -647,17 +649,20 @@ public class Refactored implements SolverInterface {
         ArrayList<Integer> dom = new ArrayList<Integer>();
         ArrayList<Integer> vals = new ArrayList<Integer>();
         Entry prevEntry = null;
+
+        pos = getNextPos(r, c);
+        r = pos[0];
+        c = pos[1];
+        dom = domain.get(r).get(c);
+        vals = getValOrder(r, c, dom);
+
         do {
-            pos = getNextPos(r, c);
-            r = pos[0];
-            c = pos[1];
-            dom = domain.get(r).get(c);
-            vals = getValOrder(r, c, dom);
+
 //            System.out.println("VALS SIZE FOR  " + r + " " + c);
 //            System.out.println(vals.size());
             depth++;
-            reccalls+=1;
-            if (reccalls % 1000000 == 0) {
+            reccalls = reccalls.add(BigInteger.valueOf((long)1));
+            if (reccalls.mod(BigInteger.valueOf((long)1000000000)).equals(BigInteger.valueOf((long)0))) {
                 System.out.println("RECCALLS : " + String.valueOf(reccalls));
                 System.out.println("DEPTH " + String.valueOf(depth));
                 show(grid);
@@ -699,6 +704,12 @@ public class Refactored implements SolverInterface {
 //            System.out.println(depth);
 //            System.out.println(history);
             //pushing worked, so keep searching
+            pos = getNextPos(r, c);
+            r = pos[0];
+            c = pos[1];
+            dom = domain.get(r).get(c);
+            vals = getValOrder(r, c, dom);
+
 //                if (!mac(r, c, newGrid, newDomain)) {
 //                    continue;
 //                }
