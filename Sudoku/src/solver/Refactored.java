@@ -65,7 +65,7 @@ public class Refactored implements SolverInterface {
     private int[] removeFromDomain(int r, int c, int num) {
         ArrayList<Integer> dom = domain.get(r).get(c);
         int domSize = domainSize.get(r).get(c);
-        if (dom.indexOf(num) > domSize) {
+        if (dom.indexOf(num) >= domSize) {
             return null;
         }
         dom.remove(dom.indexOf(num));
@@ -146,6 +146,7 @@ public class Refactored implements SolverInterface {
             for (int j = 0; j < size; j++) {
                 if (grid[i][j] != empty) {
                     if (pruneDomains(i, j, getNum(grid[i][j])) == null) {
+                        System.out.println("BADUHOH");
                         return false;
                     }
                 }
