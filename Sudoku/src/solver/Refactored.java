@@ -27,6 +27,15 @@ public class Refactored implements SolverInterface {
     private ArrayList<ArrayList<DomainSizeEntry>> domainSize;
     private Stack<Entry> history;
 
+    private ArrayList<ArrayList<ArrayList<Integer>>> rowPlaces;
+    private ArrayList<ArrayList<ArrayList<Integer>>> colPlaces;
+    private ArrayList<ArrayList<ArrayList<Integer>>> boxPlaces;
+
+    private ArrayList<ArrayList<PlacesSizeEntry>> rowPlacesSize;
+    private ArrayList<ArrayList<PlacesSizeEntry>> colPlacesSize;
+    private ArrayList<ArrayList<PlacesSizeEntry>> boxPlacesSize;
+    private PriorityQueue<PlacesSizeEntry> placesQueue;
+
     private BigInteger reccalls = BigInteger.valueOf((long)0);
     private Integer maxRecdepth = 0;
     private int lastRecdepth = 0;
@@ -42,6 +51,86 @@ public class Refactored implements SolverInterface {
         return num < 9 ? (char) (num + '1') : (char) (num + 'A' - 9);
     }
 
+    private void setPlaces(int i, int j, ArrayList<Integer> nums) {
+        int numsSorted = nums.sort();
+        int numsIt = nums.iterator();
+        int root = Math.sqrt(size);
+        int box = getBox(i, j);
+        int boxIndex = root * (i % root) + (j % root);
+        int numsSize = nums.size();
+        int currNum = numsIt.next();
+        for (int k = 0; k < size; k++) {
+            if (k == currNum) {
+                ArrayList<Integer> rowPl = rowPlaces.get(i).get(num);
+                PlacesSizeEntry re = rowPlacesSize.get(i).get(num);
+                int rind = rowPl.indexOf(j);
+                if (rind >= re.size) {
+                    re.size += 1;
+                    rowPl.remove(rind);
+                    rowPl.add(0, j);
+                }
+
+
+                ArrayList<Integer> colPl = colPlaces.get(j).get(num);
+                PlacesSizeEntry ce = rowPlacesSize.get(i).get(num);
+                int cind = colPl.indexOf(i);
+                if (cind >= ce.size) {
+                    ce.size += 1;
+                    colPl.remove(cind);
+                    colPl.add(0, i);
+                }
+
+
+                ArrayList<Integer> boxPl = boxPlaces.get(box).get(num);
+                PlacesSizeEntry be = boxPlacesSize.get(box).get(num);
+                int bind = boxPl.indexOf(boxIndex);
+                if (bind >= be.size) {
+                    be.size += 1;
+                    boxPl.remove(bind);
+                    boxPl.add(0, boxIndex);
+                }
+
+                if (numsIt.hasNext()) {
+                    currNum = numsIt.next();
+                }
+                else {
+                    currNum = -1;
+                }
+            }
+            else {
+                ArrayList<Integer> rowPl = rowPlaces.get(i).get(k);
+                PlacesSizeEntry re = rowPlacesSize.get(i).get(k);
+                int rind = rowPl.indexOf(j);
+                if (rind < re.size) {
+                    re.size -= 1;
+                    rowPl.remove(rind);
+                    rowPl.addLast(j);
+                }
+                ArrayList<Integer> colPl = colPlaces.get(j).get(k);
+                PlacesSizeEntry ce = colPlacesSize.get(j).get(k);
+                int cind = colPl.indexOf(i);
+                if (cind < ce.size) {
+                    ce.size -= 1;
+                    colPl.remove(colPl.indexOf(i));
+                    colPl.addLast(i);
+                }
+                ArrayList<Integer> boxPl = boxPlaces.get(box).get(k);
+                PlacesSizeEntry be = boxPlacesSize.get(box).get(k);
+                int bind = boxPl.indexOf(boxIndex);
+                if (bind < be.size) {
+                    be.size -= 1;
+                    boxPl.remove(boxPl.indexOf(boxIndex));
+                    boxPl.addLast(boxIndex);
+                }
+            }
+        }
+//        rowPlacesSize.get(i).set(numsSize);
+//        colPlacesSize.get(j).set(numsSize);
+//        boxPlacesSize.get(box).set(numsSize);
+        for (int num : nums) {
+        }
+    }
+
     private int[] setDomain(int i, int j, ArrayList<Integer> nums) {
         int[] change = new int[4];
         change[0] = i;
@@ -52,6 +141,7 @@ public class Refactored implements SolverInterface {
         for (int num : nums) {
             dom.remove(dom.indexOf(num));
             dom.add(0, num);
+
         }
         int numsSize = nums.size();
         domainSize.get(i).get(j).size = numsSize;
@@ -60,6 +150,9 @@ public class Refactored implements SolverInterface {
         DomainSizeEntry e =  domainSize.get(i).get(j);
         sizeQueue.remove(e);
         sizeQueue.add(e);
+
+        setPlaces(i, j, nums);
+
         return change;
     }
 
@@ -183,6 +276,9 @@ public class Refactored implements SolverInterface {
                     sizeQueue.remove(e);
                     sizeQueue.add(e);
 
+
+
+
 //                    if (pruneDomains(i, j, getNum(grid[i][j])) == null) {
 //                        return false;
 //                    }
@@ -201,6 +297,46 @@ public class Refactored implements SolverInterface {
         }
         return true;
         //System.out.println("HMM " + getChar(domain.get(3).get(0).iterator().next()));
+    }
+
+    private void fillPlaces() {
+        rowPlaces = new ArrayList<ArrayList<ArrayList<Integer>>>();
+        colPlaces = new ArrayList<ArrayList<ArrayList<Integer>>>();
+        boxPlaces = new ArrayList<ArrayList<ArrayList<Integer>>>();
+
+        rowPlacesSize = new ArrayList<ArrayList<PlacesSizeEntry>>();
+        colPlacesSize = new ArrayList<ArrayList<PlacesSizeEntry>>();
+        boxPlacesSize = new ArrayList<ArrayList<PlacesSizeEntry>>();
+
+        for (int i = 0; i < size; i++) {
+            rowPlaces.add(new ArrayList<ArrayList<Integer>>());
+            colPlaces.add(new ArrayList<ArrayList<Integer>>());
+            boxPlaces.add(new ArrayList<ArrayList<Integer>>());
+
+            rowPlacesSize.add(new ArrayList<PlacesSizeEntry>());
+            colPlacesSize.add(new ArrayList<PlacesSizeEntry>());
+            boxPlacesSize.add(new ArrayList<PlacesSizeEntry>());
+
+            for (int num = 0; num < size; num++) {
+                rowPlaces.get(i).add(new ArrayList<Integer>());
+                colPlaces.get(i).add(new ArrayList<Integer>());
+                boxPlaces.add(new ArrayList<Integer>());
+                for (int j = 0; j < size; j++) {
+                    rowPlaces.get(i).get(num).add(j);
+                    colPlaces.get(i).get(num).add(j);
+                    boxPlaces.get(i).get(num).add(j);
+                }
+                PlacesSizeEntry e = new PlacesSizeEntry(i, num, size, PlacesSizeEntry.ROW);
+                PlacesSizeEntry f = new PlacesSizeEntry(i, num, size, PlacesSizeEntry.COL);
+                PlacesSizeEntry g = new PlacesSizeEntry(i, num, size, PlacesSizeEntry.ROW);
+                sizeQueue.add(e);
+                sizeQueue.add(f);
+                sizeQueue.add(g);
+                rowPlacesSize.get(i).add(e);
+                colPlacesSize.get(i).add(f);
+                boxPlacesSize.get(i).add(g);
+            }
+        }
     }
 
     private void fillDomain() {
@@ -249,6 +385,7 @@ public class Refactored implements SolverInterface {
         };
         sizeQueue = new PriorityQueue<DomainSizeEntry>(size*size, sizeComparator);
         fillDomain();
+        fillPlaces();
         calls = new Stack<ArrayList<Integer>>();
         history = new Stack<Entry>();
     }
@@ -453,13 +590,13 @@ public class Refactored implements SolverInterface {
 //                }
                 if (domainSize.get(i).get(j).size == 1) {
                     lst.addLast(getIntFromPosPair(i, j));
-                    System.out.println("ADDING " + String.valueOf(i) + " " + String.valueOf(j));
+//                    System.out.println("ADDING " + String.valueOf(i) + " " + String.valueOf(j));
                 }
             }
         }
         boolean ret = propagate(lst);
         System.out.println("AFTER AC3");
-        show(grid);
+//        show(grid);
         return ret;
     }
 
