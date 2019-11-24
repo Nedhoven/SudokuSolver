@@ -559,6 +559,7 @@ public class Refactored implements SolverInterface {
         int[] minpos = new int[2];
         minpos[0] = e.r;
         minpos[1] = e.c;
+//        System.out.println("NEXTPOS SIZE: " + String.valueOf(minpos[0]) + " " + String.valueOf(minpos[1]) + " " + String.valueOf(e.size) + " " +  String.valueOf(e.isEmpty) + " " + grid[minpos[0]][minpos[1]] + " " + domainSize.get(minpos[0]).get(minpos[1]).size);
         return minpos;
 //        int minDomainSize = size + 1;
 //        int[] minpos = new int[2];
@@ -662,15 +663,16 @@ public class Refactored implements SolverInterface {
     }
 
     private boolean isFull(char[][] currGrid) {
-        boolean isFull = true;
-        for (int i = 0; i < size; i++) {
-            for (int j = 0; j < size; j++) {
-                if (currGrid[i][j] == empty) {
-                    isFull = false;
-                }
-            }
-        }
-        return isFull;
+        return !sizeQueue.peek().isEmpty;
+//        boolean isFull = true;
+//        for (int i = 0; i < size; i++) {
+//            for (int j = 0; j < size; j++) {
+//                if (currGrid[i][j] == empty) {
+//                    isFull = false;
+//                }
+//            }
+//        }
+//        return isFull;
     }
 
     private int getFreq(int num, int row, int col) {
@@ -773,7 +775,7 @@ public class Refactored implements SolverInterface {
 //            System.out.println(grid[r][c]);
 //            System.out.println(currValI);
             reccalls = reccalls.add(BigInteger.valueOf((long)1));
-            if (reccalls.mod(BigInteger.valueOf((long)10000000)).equals(BigInteger.valueOf((long)0))) {
+            if (reccalls.mod(BigInteger.valueOf((long)5000000)).equals(BigInteger.valueOf((long)0))) {
                 System.out.println("RECCALLS : " + String.valueOf(reccalls));
                 System.out.println("DEPTH " + String.valueOf(depth));
                 show(grid);
