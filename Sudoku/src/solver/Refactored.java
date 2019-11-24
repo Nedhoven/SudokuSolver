@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Set;
 import java.util.HashSet;
+import java.util.PriorityQueue;
 import java.util.Stack;
 import java.lang.Thread;
 
@@ -23,13 +24,15 @@ public class Refactored implements SolverInterface {
     private ArrayList<ArrayList<ArrayList<Integer>>> domain;
 
     private Stack<ArrayList<Integer>> calls;
-    private ArrayList<ArrayList<Integer>> domainSize;
+    private ArrayList<ArrayList<DomainSizeEntry>> domainSize;
     private Stack<Entry> history;
 
     private BigInteger reccalls = BigInteger.valueOf((long)0);
     private Integer maxRecdepth = 0;
     private int lastRecdepth = 0;
 
+    private PriorityQueue<DomainSizeEntry> sizeQueue;
+    private Comparator<DomainSizeEntry> sizeComparator;
 
     private int getNum(char c) {
         return (c - '1') < 9 ? (c - '1') : (c - 'A' + 9);
@@ -43,7 +46,7 @@ public class Refactored implements SolverInterface {
         int[] change = new int[4];
         change[0] = i;
         change[1] = j;
-        change[2] = domainSize.get(i).get(j);
+        change[2] = domainSize.get(i).get(j).size;
         //domain.get(i).get(j).size();
         ArrayList<Integer> dom = domain.get(i).get(j);
         for (int num : nums) {
@@ -51,14 +54,18 @@ public class Refactored implements SolverInterface {
             dom.add(0, num);
         }
         int numsSize = nums.size();
-        domainSize.get(i).set(j, numsSize);
+        domainSize.get(i).get(j).size = numsSize;
         change[3] = numsSize;
+
+        DomainSizeEntry e =  domainSize.get(i).get(j);
+        sizeQueue.remove(e);
+        sizeQueue.add(e);
         return change;
     }
 
     private boolean isInDomain(int r, int c, int num) {
         ArrayList<Integer> dom = domain.get(r).get(c);
-        int domSize = domainSize.get(r).get(c);
+        int domSize = domainSize.get(r).get(c).size;
         int index = dom.indexOf(num);
         if (index >= domSize) {
             return false;
@@ -70,7 +77,7 @@ public class Refactored implements SolverInterface {
 
     private int[] removeFromDomain(int r, int c, int num) {
         ArrayList<Integer> dom = domain.get(r).get(c);
-        int domSize = domainSize.get(r).get(c);
+        int domSize = domainSize.get(r).get(c).size;
         if (dom.indexOf(num) >= domSize) {
             return null;
         }
@@ -82,7 +89,7 @@ public class Refactored implements SolverInterface {
 //        show(grid);
         dom.remove(dom.indexOf(num));
         dom.add(domSize - 1, num);
-        domainSize.get(r).set(c, domSize - 1);
+        domainSize.get(r).get(c).size = domSize - 1;
         int[] domainChange = new int[4];
         domainChange[0] = r;
         domainChange[1] = c;
@@ -94,6 +101,9 @@ public class Refactored implements SolverInterface {
 ////            System.out.println("SIZE");
 //            System.out.println(domSize);
         }
+        DomainSizeEntry e  = domainSize.get(r).get(c);
+        sizeQueue.remove(e);
+        sizeQueue.add(e);
         return domainChange;
     }
 
@@ -101,6 +111,11 @@ public class Refactored implements SolverInterface {
         boolean pruneDeadend = false;
         int num = getNum(cc);
         grid[r][c] = cc;
+
+        DomainSizeEntry e = domainSize.get(r).get(c);
+        e.isEmpty = false;
+        sizeQueue.remove(e);
+        sizeQueue.add(e);
 
         ArrayList<Integer> nums = new ArrayList<Integer>();
         nums.add(num);
@@ -133,9 +148,17 @@ public class Refactored implements SolverInterface {
 //            System.out.println(c);
 //        }
         grid[r][c] = empty;
+        DomainSizeEntry se = domainSize.get(r).get(c);
+        se.isEmpty = true;
+        sizeQueue.remove(se);
+        sizeQueue.add(se);
         Set<int[]> changes = currEntry.domainChanges;
         for (int[] change : changes) {
-            domainSize.get(change[0]).set(change[1], change[2]);
+//            domainSize.get(change[0]).get(change[1]).size = change[2];
+            DomainSizeEntry e = domainSize.get(change[0]).get(change[1]);
+            e.size = change[2];
+            sizeQueue.remove(e);
+            sizeQueue.add(e);
         }
         if (history.size() == 0) {
             return null;
@@ -155,6 +178,10 @@ public class Refactored implements SolverInterface {
                     ArrayList<Integer> nums = new ArrayList<Integer>();
                     nums.add(getNum(grid[i][j]));
                     setDomain(i, j, nums);
+                    DomainSizeEntry e = domainSize.get(i).get(j);
+                    e.isEmpty = false;
+                    sizeQueue.remove(e);
+                    sizeQueue.add(e);
 
 //                    if (pruneDomains(i, j, getNum(grid[i][j])) == null) {
 //                        return false;
@@ -178,16 +205,18 @@ public class Refactored implements SolverInterface {
 
     private void fillDomain() {
         domain = new ArrayList<ArrayList<ArrayList<Integer>>>();
-        domainSize = new ArrayList<ArrayList<Integer>>();
+        domainSize = new ArrayList<ArrayList<DomainSizeEntry>>();
         for (int i = 0; i < size; i++) {
             domain.add(new ArrayList<ArrayList<Integer>>());
-            domainSize.add(new ArrayList<Integer>());
+            domainSize.add(new ArrayList<DomainSizeEntry>());
             for (int j = 0; j < size; j++) {
                 domain.get(i).add(new ArrayList<Integer>());
                 for (int num = 0; num < size; num++) {
                     domain.get(i).get(j).add(num);
                 }
-                domainSize.get(i).add(size);
+                DomainSizeEntry e = new DomainSizeEntry(i, j, size, true);
+                sizeQueue.add(e);
+                domainSize.get(i).add(e);
 //                System.out.println(domain.get(i).get(j).size());
 //                domainSize.get(i).set(j, size);
             }
@@ -198,6 +227,27 @@ public class Refactored implements SolverInterface {
         size = n;
         root = (int) Math.sqrt(n);
 
+        sizeComparator = new Comparator<DomainSizeEntry>() {
+            public int compare(DomainSizeEntry e, DomainSizeEntry f) {
+                if (e.isEmpty && !f.isEmpty) {
+                    return -1;
+                }
+                else if (!e.isEmpty && f.isEmpty) {
+                    return 1;
+                }
+                return e.size - f.size;
+//                if (e.size() < f.size()) {
+//                    return -1;
+//                }
+//                else if (e.size() == f.size()) {
+//                    return 0;
+//                }
+//                else {
+//                    return 1;
+//                }
+            }
+        };
+        sizeQueue = new PriorityQueue<DomainSizeEntry>(size*size, sizeComparator);
         fillDomain();
         calls = new Stack<ArrayList<Integer>>();
         history = new Stack<Entry>();
@@ -278,11 +328,11 @@ public class Refactored implements SolverInterface {
 
             //System.out.println("ROWCOL: " + String.valueOf(row) + " " + String.valueOf(col) + " " + posint.toString());
 
-            if (domainSize.get(row).get(col) > 1) {
+            if (domainSize.get(row).get(col).size > 1) {
                 System.out.println("UH OH");
             }
 
-            if (domainSize.get(row).get(col) == 0) {
+            if (domainSize.get(row).get(col).size == 0) {
                 show(grid);
                 System.out.println(" BAD " + String.valueOf(row) + " " + String.valueOf(col));
                 return false;
@@ -306,7 +356,7 @@ public class Refactored implements SolverInterface {
 //                ArrayList<Integer> colmateDom = currDomain.get(k).get(col);
 
                 if (k != col && grid[row][k] == empty) {
-                    int oldRowmateSize = domainSize.get(row).get(k);
+                    int oldRowmateSize = domainSize.get(row).get(k).size;
                     //rowmateDom.size();
 //                    System.out.println("PRUNING " + getChar(num) + " from " + String.valueOf(row) + " " + String.valueOf(k));
 //                    System.out.print("OLD DOMAIN OF " + String.valueOf(row) + String.valueOf(k));
@@ -316,7 +366,7 @@ public class Refactored implements SolverInterface {
 //                    System.out.print('\n');
                     removeFromDomain(row, k, num);
 //                    rowmateDom.remove(num);
-                    int newRowmateSize = domainSize.get(row).get(k);
+                    int newRowmateSize = domainSize.get(row).get(k).size;
 //                    System.out.print("NEW DOMAIN OF " + String.valueOf(row) + String.valueOf(k) +  " " + String.valueOf(oldRowmateSize) + " " + String.valueOf(newRowmateSize));
 //                    for (int d : rowmateDom) {
 //                        System.out.print(" " + getChar(d));
@@ -332,7 +382,7 @@ public class Refactored implements SolverInterface {
                 }
 
                 if (k != row && grid[k][col] == empty) {
-                    int oldColmateSize = domainSize.get(k).get(col);
+                    int oldColmateSize = domainSize.get(k).get(col).size;
 //                    System.out.println("PRUNING " + getChar(num) + " from " + String.valueOf(k) + " " + String.valueOf(col));
 //                    System.out.print("OLD DOMAIN OF " + String.valueOf(k) + String.valueOf(col));
 //                    for (int d : colmateDom) {
@@ -340,7 +390,7 @@ public class Refactored implements SolverInterface {
 //                    }
 //                    System.out.print('\n');
                     removeFromDomain(k, col, num);
-                    int newColmateSize = domainSize.get(k).get(col);
+                    int newColmateSize = domainSize.get(k).get(col).size;
 //                    System.out.print("NEW DOMAIN OF " + String.valueOf(k) + String.valueOf(col) +  " " + String.valueOf(oldColmateSize) + " " + String.valueOf(newColmateSize));
 //                    for (int d : colmateDom) {
 //                        System.out.print(" " + getChar(d));
@@ -364,7 +414,7 @@ public class Refactored implements SolverInterface {
                 if (i == row || j == col) continue; // we dealt with rowmates and colmates earlier
                 if (grid[i][j] != empty) continue;
                 //ArrayList<Integer> boxmateDom = currDomain.get(i).get(j);
-                int oldBoxmateSize = domainSize.get(i).get(j);
+                int oldBoxmateSize = domainSize.get(i).get(j).size;
                         //boxmateDom.size();
 //                System.out.println("PRUNING " + getChar(num) + " from " + String.valueOf(i) + " " + String.valueOf(j));
 //                System.out.print("OLD DOMAIN OF " + String.valueOf(i) + String.valueOf(j));
@@ -374,7 +424,7 @@ public class Refactored implements SolverInterface {
 //                System.out.println('\n');
                 removeFromDomain(i, j, num);
 //                boxmateDom.remove(num);
-                int newBoxmateSize = domainSize.get(i).get(j);
+                int newBoxmateSize = domainSize.get(i).get(j).size;
                 //boxmateDom.size();
 
 //                System.out.print("NEW DOMAIN OF " + String.valueOf(i) + String.valueOf(j) +  " " + String.valueOf(oldBoxmateSize) + " " + String.valueOf(newBoxmateSize));
@@ -401,7 +451,7 @@ public class Refactored implements SolverInterface {
 //                    currDomain.get(i).set(j, new HashSet<Integer>());
 //                    currDomain.get(i).get(j).add(getNum(currGrid[i][j]));
 //                }
-                if (domainSize.get(i).get(j) == 1) {
+                if (domainSize.get(i).get(j).size == 1) {
                     lst.addLast(getIntFromPosPair(i, j));
                     System.out.println("ADDING " + String.valueOf(i) + " " + String.valueOf(j));
                 }
@@ -485,24 +535,49 @@ public class Refactored implements SolverInterface {
 //        return pos;
 //    }
 
+//    private int[] getNextPos(int r, int c) {
+//        int minDomainSize = size + 1;
+//        int[] minpos = new int[2];
+//        minpos[0] = -1;
+//        minpos[1] = -1;
+//        for (int i = 0; i < size; i++) {
+//            for (int j = 0; j < size; j++) {
+//                if (grid[i][j] != empty) continue;
+//                int ijSize = domainSize.get(i).get(j);
+//                if (ijSize < minDomainSize) {
+//                    minDomainSize = ijSize;
+//                    minpos[0] = i;
+//                    minpos[1] = j;
+//                }
+//            }
+//        }
+//        return minpos;
+//    }
+
     private int[] getNextPos(int r, int c) {
-        int minDomainSize = size + 1;
+        DomainSizeEntry e = sizeQueue.peek();
         int[] minpos = new int[2];
-        minpos[0] = -1;
-        minpos[1] = -1;
-        for (int i = 0; i < size; i++) {
-            for (int j = 0; j < size; j++) {
-                if (grid[i][j] != empty) continue;
-                int ijSize = domainSize.get(i).get(j);
-                if (ijSize < minDomainSize) {
-                    minDomainSize = ijSize;
-                    minpos[0] = i;
-                    minpos[1] = j;
-                }
-            }
-        }
+        minpos[0] = e.r;
+        minpos[1] = e.c;
         return minpos;
+//        int minDomainSize = size + 1;
+//        int[] minpos = new int[2];
+//        minpos[0] = -1;
+//        minpos[1] = -1;
+//        for (int i = 0; i < size; i++) {
+//            for (int j = 0; j < size; j++) {
+//                if (grid[i][j] != empty) continue;
+//                int ijSize = domainSize.get(i).get(j);
+//                if (ijSize < minDomainSize) {
+//                    minDomainSize = ijSize;
+//                    minpos[0] = i;
+//                    minpos[1] = j;
+//                }
+//            }
+//        }
+//        return minpos;
     }
+
 
     private int getBox(int r, int c) {
         return root*(r/root) + (c/root);
@@ -626,7 +701,7 @@ public class Refactored implements SolverInterface {
 
     private ArrayList<Integer> getDomainVals(int r, int c) {
         ArrayList<Integer> vals = new ArrayList<Integer>();
-        int domSize = domainSize.get(r).get(c);
+        int domSize = domainSize.get(r).get(c).size;
         for (int i = 0; i < domSize; i++) {
             vals.add(domain.get(r).get(c).get(i));
         }
@@ -635,7 +710,7 @@ public class Refactored implements SolverInterface {
 
     private ArrayList<Integer> getValOrder(int r, int c, ArrayList<Integer> dom) {
         ArrayList<int[]> freqs = new ArrayList<int[]>();
-        int domSize = domainSize.get(r).get(c);
+        int domSize = domainSize.get(r).get(c).size;
         for (int i = 0; i < domSize; i++) {
             int num = dom.get(i);
             int[] pair = new int[2];
