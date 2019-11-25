@@ -42,7 +42,8 @@ public class Refactored implements SolverInterface {
     private int lastRecdepth = 0;
 
     private PriorityQueue<DomainSizeEntry> sizeQueue;
-    private Comparator<SizeEntry> sizeComparator;
+    private Comparator<DomainSizeEntry> domainSizeComparator;
+    private Comparator<PlacesSizeEntry> placesSizeComparator;
 
     private int getNum(char c) {
         return (c - '1') < 9 ? (c - '1') : (c - 'A' + 9);
@@ -137,6 +138,7 @@ public class Refactored implements SolverInterface {
         change[0] = i;
         change[1] = j;
         DomainSizeEntry domSizeE = domainSize.get(i).get(j);
+//        System.out.println("DSE " + domSizeE.size);
         change[2] = domSizeE.size;
         //domain.get(i).get(j).size();
         ArrayList<Integer> dom = domain.get(i).get(j);
@@ -146,15 +148,26 @@ public class Refactored implements SolverInterface {
         int box = getBox(i, j);
         Iterator<Integer> numsIt = nums.iterator();
         int currNum = numsIt.next();
+//        System.out.println("DOM");
+//        System.out.println(dom);
+//        System.out.println(domSizeE.size);
         for (int k = 0; k < size; k++) {
             PlacesSizeEntry re = rowPlacesSize.get(i).get(k);
             PlacesSizeEntry ce = colPlacesSize.get(j).get(k);
             PlacesSizeEntry be = boxPlacesSize.get(box).get(k);
             int dind = dom.indexOf(k);
-            int domSize = domSizeE.size;
+//            System.out.println(k);
+//            System.out.println("CURR " + currNum);
             if (k == currNum) {
 //                ArrayList<Integer> rowPl = rowPlaces.get(i).get(num);
-                if (dind >= domSize) {
+                if (dind >= domSizeE.size) {
+//                    System.out.println("WHY");
+//                    System.out.println(dind);
+//                    System.out.println(k);
+//                    System.out.println(domSizeE.size);
+//                    System.out.println("CE " + ce.size);
+                    dom.remove(dind);
+                    dom.add(0, k);
                     domSizeE.size++;
                     re.size++;
                     ce.size++;
@@ -176,7 +189,13 @@ public class Refactored implements SolverInterface {
             else {
 //                ArrayList<Integer> rowPl = rowPlaces.get(i).get(k);
 //                PlacesSizeEntry re = rowPlacesSize.get(i).get(k);
-                if (dind < domSize) {
+                if (dind < domSizeE.size) {
+//                    System.out.println("WHERE");
+//                    System.out.println(k);
+//                    System.out.println(domSizeE.size);
+//                    System.out.println("CE " + ce.size);
+                    dom.remove(dind);
+                    dom.add(domSizeE.size - 1, k);
                     domSizeE.size--;
                     re.size--;
                     ce.size--;
@@ -272,6 +291,10 @@ public class Refactored implements SolverInterface {
 
         ArrayList<Integer> nums = new ArrayList<Integer>();
         nums.add(num);
+//        System.out.println("PUSHING SET ");
+//        System.out.println(r);
+//        System.out.println(c);
+//        System.out.println(nums);
         int[] change = setDomain(r, c, nums);
         PruneResult pruneRes = pruneDomains(r, c, num);
         Set<int[]> domainChanges = pruneRes.changes;
@@ -288,6 +311,31 @@ public class Refactored implements SolverInterface {
         entry.vals = vals;
         entry.domainChanges = domainChanges;
         history.push(entry);
+
+        PlacesSizeEntry re = rowPlacesSize.get(r).get(num);
+        PlacesSizeEntry ce = colPlacesSize.get(c).get(num);
+
+        int box = getBox(r, c);
+        PlacesSizeEntry be = boxPlacesSize.get(box).get(num);
+        re.isFilledIn = true;
+        ce.isFilledIn = true;
+        be.isFilledIn = true;
+//        System.out.println("FILLED IN SETTING");
+//        System.out.println(r);
+//        System.out.println(num);
+//        System.out.println(re);
+
+//                    re.size--;
+//                    ce.size--;
+//                    be.size--;
+        placesQueue.remove(re);
+        placesQueue.remove(ce);
+        placesQueue.remove(be);
+        placesQueue.add(re);
+        placesQueue.add(ce);
+        placesQueue.add(be);
+
+
         return !pruneDeadend;
     }
 
@@ -300,6 +348,26 @@ public class Refactored implements SolverInterface {
 //            System.out.println(r);
 //            System.out.println(c);
 //        }
+        int oldNum = getNum(grid[r][c]);
+
+        PlacesSizeEntry ore = rowPlacesSize.get(r).get(oldNum);
+        PlacesSizeEntry oce = colPlacesSize.get(c).get(oldNum);
+        int oldBox = getBox(r, c);
+        PlacesSizeEntry obe = boxPlacesSize.get(oldBox).get(oldNum);
+        ore.isFilledIn = false;
+//        System.out.println("UNFILLING ");
+//        System.out.println(ore.index);
+//        System.out.println(ore.num);
+        oce.isFilledIn = false;
+        obe.isFilledIn = false;
+        placesQueue.remove(ore);
+        placesQueue.remove(oce);
+        placesQueue.remove(obe);
+        placesQueue.add(ore);
+        placesQueue.add(oce);
+        placesQueue.add(obe);
+
+
         grid[r][c] = empty;
         DomainSizeEntry se = domainSize.get(r).get(c);
         se.isEmpty = true;
@@ -348,12 +416,41 @@ public class Refactored implements SolverInterface {
             for (int j = 0; j < size; j++) {
                 if (grid[i][j] != empty) {
                     ArrayList<Integer> nums = new ArrayList<Integer>();
-                    nums.add(getNum(grid[i][j]));
+                    int num = getNum(grid[i][j]);
+                    nums.add(num);
+                    //System.out.println("BEFORE: " + ce.size);
                     setDomain(i, j, nums);
+                    //System.out.println("AFTER: " + ce.size);
                     DomainSizeEntry e = domainSize.get(i).get(j);
                     e.isEmpty = false;
                     sizeQueue.remove(e);
                     sizeQueue.add(e);
+
+                    PlacesSizeEntry re = rowPlacesSize.get(i).get(num);
+                    PlacesSizeEntry ce = colPlacesSize.get(j).get(num);
+                    int box = getBox(i, j);
+                    PlacesSizeEntry be = boxPlacesSize.get(box).get(num);
+                    re.isFilledIn = true;
+                    ce.isFilledIn = true;
+                    be.isFilledIn = true;
+//                    re.size--;
+//                    ce.size--;
+//                    be.size--;
+                    placesQueue.remove(re);
+                    placesQueue.remove(ce);
+                    placesQueue.remove(be);
+                    placesQueue.add(re);
+                    placesQueue.add(ce);
+                    placesQueue.add(be);
+//                    System.out.println("DOMAIN SET");
+//                    System.out.println(i);
+//                    System.out.println(j);
+//                    System.out.println(nums.size());
+//                    System.out.println(e.size);
+//                    System.out.println(ce.index);
+//                    System.out.println(num);
+//                    System.out.println(ce.num);
+//                    System.out.println(ce.size);
 
 
 
@@ -407,7 +504,7 @@ public class Refactored implements SolverInterface {
 //                }
                 PlacesSizeEntry e = new PlacesSizeEntry(i, num, size, PlacesSizeEntry.ROW);
                 PlacesSizeEntry f = new PlacesSizeEntry(i, num, size, PlacesSizeEntry.COL);
-                PlacesSizeEntry g = new PlacesSizeEntry(i, num, size, PlacesSizeEntry.ROW);
+                PlacesSizeEntry g = new PlacesSizeEntry(i, num, size, PlacesSizeEntry.BOX);
                 placesQueue.add(e);
                 placesQueue.add(f);
                 placesQueue.add(g);
@@ -442,8 +539,8 @@ public class Refactored implements SolverInterface {
         size = n;
         root = (int) Math.sqrt(n);
 
-        sizeComparator = new Comparator<SizeEntry>() {
-            public int compare(SizeEntry e, SizeEntry f) {
+        domainSizeComparator = new Comparator<DomainSizeEntry>() {
+            public int compare(DomainSizeEntry e, DomainSizeEntry f) {
                 if (e.isEmpty && !f.isEmpty) {
                     return -1;
                 }
@@ -451,20 +548,23 @@ public class Refactored implements SolverInterface {
                     return 1;
                 }
                 return e.size - f.size;
-//                if (e.size() < f.size()) {
-//                    return -1;
-//                }
-//                else if (e.size() == f.size()) {
-//                    return 0;
-//                }
-//                else {
-//                    return 1;
-//                }
             }
         };
-        sizeQueue = new PriorityQueue<DomainSizeEntry>(size*size, sizeComparator);
+        sizeQueue = new PriorityQueue<DomainSizeEntry>(size*size, domainSizeComparator);
         fillDomain();
-        placesQueue = new PriorityQueue<PlacesSizeEntry>(size*size, sizeComparator);
+
+        placesSizeComparator = new Comparator<PlacesSizeEntry>() {
+            public int compare(PlacesSizeEntry e, PlacesSizeEntry f) {
+                if (!e.isFilledIn && f.isFilledIn) {
+                    return -1;
+                }
+                else if (e.isFilledIn && !f.isFilledIn) {
+                    return 1;
+                }
+                return e.size - f.size;
+            }
+        };
+        placesQueue = new PriorityQueue<PlacesSizeEntry>(size*size, placesSizeComparator);
         fillPlaces();
         calls = new Stack<ArrayList<Integer>>();
         history = new Stack<Entry>();
@@ -710,11 +810,26 @@ public class Refactored implements SolverInterface {
     private int[] getPosFromPlaces(PlacesSizeEntry pe) {
         int[] placepos = new int[2];
         int num = pe.num;
+//        System.out.println("PLACES TYPE ");
+//        System.out.println(pe.indexType);
+//        System.out.println(pe.index);
+//        System.out.println(pe.num);
+//        System.out.println(pe.size);
+        //show(grid);
         if (pe.indexType == PlacesSizeEntry.ROW) {
             placepos[0] = pe.index;
             for (int j = 0; j < size; j++) {
                 if (isInDomain(pe.index, j, num)) {
                     placepos[1] = j;
+                    if (grid[placepos[0]][placepos[1]] != empty) {
+                        System.out.println("0 OOPS V BAD");
+                        System.out.println(pe.isFilledIn);
+                        System.out.println(pe.index);
+                        System.out.println(pe.indexType);
+                        System.out.println(pe.num);
+                        System.out.println(pe);
+                        show(grid);
+                    }
                     return placepos;
                 }
             }
@@ -724,6 +839,10 @@ public class Refactored implements SolverInterface {
             for (int i = 0; i < size; i++) {
                 if (isInDomain(i, pe.index, num)) {
                     placepos[0] = i;
+                    if (grid[placepos[0]][placepos[1]] != empty) {
+                        System.out.println("1 OOPS V BAD");
+                        System.out.println(pe.isFilledIn);
+                    }
                     return placepos;
                 }
             }
@@ -737,10 +856,17 @@ public class Refactored implements SolverInterface {
                 if (isInDomain(i, j, num)) {
                     placepos[0] = i;
                     placepos[1] = j;
+                    if (grid[placepos[0]][placepos[1]] != empty) {
+                        System.out.println("2 OOPS V BAD");
+                        System.out.println(pe.isFilledIn);
+                    }
+
                     return placepos;
                 }
             }
         }
+        System.out.println("3 OOPS V BAD");
+
         placepos[0] = -1;
         placepos[1] = -1;
         return placepos;
@@ -811,6 +937,7 @@ public class Refactored implements SolverInterface {
 //    }
 
     private int[] getNextPos(int r, int c) {
+//        System.out.println("GETTING NEXT");
         DomainSizeEntry e = sizeQueue.peek();
         int[] minpos = new int[2];
         minpos[0] = e.r;
@@ -820,7 +947,11 @@ public class Refactored implements SolverInterface {
         }
         else {
             PlacesSizeEntry pe = placesQueue.peek();
+            if (pe.isFilledIn) {
+                System.out.println("OOPS V BAD");
+            }
             if (pe.size == 1) {
+                System.out.println("USING SIZE HEURISTIC!");
                 return getPosFromPlaces(pe);
             }
         }
@@ -1040,7 +1171,7 @@ public class Refactored implements SolverInterface {
 //            System.out.println(grid[r][c]);
 //            System.out.println(currValI);
             reccalls = reccalls.add(BigInteger.valueOf((long)1));
-            if (reccalls.mod(BigInteger.valueOf((long)5000000)).equals(BigInteger.valueOf((long)0))) {
+            if (reccalls.mod(BigInteger.valueOf((long)1000000)).equals(BigInteger.valueOf((long)0))) {
                 System.out.println("RECCALLS : " + String.valueOf(reccalls));
                 System.out.println("DEPTH " + String.valueOf(depth));
                 show(grid);
