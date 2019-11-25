@@ -75,7 +75,7 @@ public class Example {
                 };
                 return board;
             }
-            case 16:
+            case 17:
             {
                 char[][] board = new char[16][16];
                 try {
@@ -138,7 +138,7 @@ public class Example {
             }
             default:
             {
-                char[][] board = new char[25][25];
+                char[][] board = new char[size][size];
                 try {
                     if (filename == null) {
                         filename = "board_2525_100_2.txt";
