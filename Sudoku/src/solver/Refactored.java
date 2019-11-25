@@ -775,7 +775,7 @@ public class Refactored implements SolverInterface {
 //            System.out.println(grid[r][c]);
 //            System.out.println(currValI);
             reccalls = reccalls.add(BigInteger.valueOf((long)1));
-            if (reccalls.mod(BigInteger.valueOf((long)5000000)).equals(BigInteger.valueOf((long)0))) {
+            if (reccalls.mod(BigInteger.valueOf((long)1000000)).equals(BigInteger.valueOf((long)0))) {
                 System.out.println("RECCALLS : " + String.valueOf(reccalls));
                 System.out.println("DEPTH " + String.valueOf(depth));
                 show(grid);
