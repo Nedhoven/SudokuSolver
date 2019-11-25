@@ -33,7 +33,7 @@ public class Example {
     }
 
 
-    public char[][] getGrid() {
+    public char[][] getGrid(String filename) {
         switch (size) {
 //            case 9: {
 //                char[][] board = {
@@ -140,7 +140,11 @@ public class Example {
             {
                 char[][] board = new char[25][25];
                 try {
-                    File f = new File("/mnt/c/Users/danie/Downloads/board_0.txt");
+                    if (filename == null) {
+                        filename = "board_2525_100_2.txt";
+                    }
+//                    File f = new File("/mnt/c/Users/danie/Downloads/board_0.txt");
+                    File f = new File("/mnt/c/Users/danie/cs271/" + filename);
                     BufferedReader br = new BufferedReader(new FileReader(f));
                     String st;
                     int i = 0;
