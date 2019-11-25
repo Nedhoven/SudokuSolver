@@ -16,7 +16,11 @@ public class Main {
             useOptimized = false;
         }
         if (runFlag) {
-            char[][] board = getBoard();
+            String filename = null;
+            if (args.length >= 2) {
+                filename = args[1];
+            }
+            char[][] board = getBoard(filename);
             double startTime = System.nanoTime();
             char[][] ans = calculate(board, useOptimized);
             double endTime = System.nanoTime();
@@ -28,9 +32,9 @@ public class Main {
         }
     }
     
-    public static char[][] getBoard() {
+    public static char[][] getBoard(String filename) {
         Example ex = new Example(25);
-        return ex.getGrid();
+        return ex.getGrid(filename);
     }
     
     public static char[][] calculate(char[][] board, boolean useOptimized) {
