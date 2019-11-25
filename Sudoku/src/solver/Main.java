@@ -33,7 +33,7 @@ public class Main {
     }
     
     public static char[][] getBoard(String filename) {
-        Example ex = new Example(25);
+        Example ex = new Example(16);
         return ex.getGrid(filename);
     }
     
@@ -41,7 +41,7 @@ public class Main {
         int n = board.length;
         SolverInterface s;
         if (useOptimized) {
-            s = new Refactored(25);
+            s = new Refactored(16);
         }
         else {
             s = new Solver(n);
