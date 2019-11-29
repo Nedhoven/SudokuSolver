@@ -24,6 +24,10 @@ public class Refactored implements SolverInterface {
     private final char empty = '0';
     private ArrayList<ArrayList<ArrayList<Integer>>> domain;
 
+    private static final boolean DEFAULT = false;
+    private static final boolean SECOND = true;
+    private boolean mode = DEFAULT;
+
     private Stack<ArrayList<Integer>> calls;
     private ArrayList<ArrayList<DomainSizeEntry>> domainSize;
     private Stack<Entry> history;
@@ -942,7 +946,7 @@ public class Refactored implements SolverInterface {
         int[] minpos = new int[2];
         minpos[0] = e.r;
         minpos[1] = e.c;
-        if (e.size == 1) {
+        if (mode == DEFAULT || e.size == 1) {
             return minpos;
         }
         else {
@@ -1171,7 +1175,8 @@ public class Refactored implements SolverInterface {
 //            System.out.println(grid[r][c]);
 //            System.out.println(currValI);
             reccalls = reccalls.add(BigInteger.valueOf((long)1));
-            if (reccalls.mod(BigInteger.valueOf((long)1000000)).equals(BigInteger.valueOf((long)0))) {
+            if (reccalls.mod(BigInteger.valueOf((long)10000000)).equals(BigInteger.valueOf((long)0))) {
+                //mode = !mode;
                 System.out.println("RECCALLS : " + String.valueOf(reccalls));
                 System.out.println("DEPTH " + String.valueOf(depth));
                 show(grid);
