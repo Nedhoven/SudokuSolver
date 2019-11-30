@@ -26,7 +26,8 @@ public class Refactored implements SolverInterface {
 
     private static final boolean DEFAULT = false;
     private static final boolean SECOND = true;
-    private boolean mode = DEFAULT;
+    private boolean varmode = DEFAULT;
+    private boolean valmode = DEFAULT;
 
     private Stack<ArrayList<Integer>> calls;
     private ArrayList<ArrayList<DomainSizeEntry>> domainSize;
@@ -316,6 +317,8 @@ public class Refactored implements SolverInterface {
         entry.domainChanges = domainChanges;
         history.push(entry);
 
+        System.out.println(r + " " + c + " " + getChar(vals.get(currValI)));
+
         PlacesSizeEntry re = rowPlacesSize.get(r).get(num);
         PlacesSizeEntry ce = colPlacesSize.get(c).get(num);
 
@@ -352,6 +355,7 @@ public class Refactored implements SolverInterface {
 //            System.out.println(r);
 //            System.out.println(c);
 //        }
+        System.out.println(r + " " + c + " " + grid[r][c]);
         int oldNum = getNum(grid[r][c]);
 
         PlacesSizeEntry ore = rowPlacesSize.get(r).get(oldNum);
@@ -780,7 +784,7 @@ public class Refactored implements SolverInterface {
         }
         boolean ret = propagate(lst);
         System.out.println("AFTER AC3");
-//        show(grid);
+        show(grid);
         return ret;
     }
 
@@ -946,7 +950,7 @@ public class Refactored implements SolverInterface {
         int[] minpos = new int[2];
         minpos[0] = e.r;
         minpos[1] = e.c;
-        if (mode == DEFAULT || e.size == 1) {
+        if (varmode == DEFAULT || e.size == 1) {
             return minpos;
         }
         else {
@@ -955,7 +959,7 @@ public class Refactored implements SolverInterface {
                 System.out.println("OOPS V BAD");
             }
             if (pe.size == 1) {
-                System.out.println("USING SIZE HEURISTIC!");
+                //System.out.println("USING SIZE HEURISTIC!");
                 return getPosFromPlaces(pe);
             }
         }
@@ -1164,7 +1168,12 @@ public class Refactored implements SolverInterface {
         r = pos[0];
         c = pos[1];
         dom = domain.get(r).get(c);
-        vals = getValOrder(r, c, dom);
+        if (valmode == DEFAULT) {
+            vals = dom;
+        }
+        else {
+            vals = getValOrder(r, c, dom);
+        }
         boolean backtracking = false;
         do {
             if (vals.size() == 0) {
@@ -1175,12 +1184,15 @@ public class Refactored implements SolverInterface {
 //            System.out.println(grid[r][c]);
 //            System.out.println(currValI);
             reccalls = reccalls.add(BigInteger.valueOf((long)1));
-            if (reccalls.mod(BigInteger.valueOf((long)10000000)).equals(BigInteger.valueOf((long)0))) {
-                //mode = !mode;
+            if (reccalls.mod(BigInteger.valueOf((long)5000000)).equals(BigInteger.valueOf((long)0))) {
+                //varmode = !varmode;
                 System.out.println("RECCALLS : " + String.valueOf(reccalls));
                 System.out.println("DEPTH " + String.valueOf(depth));
                 show(grid);
                 System.out.println();
+            }
+            if (reccalls.mod(BigInteger.valueOf((long)5000000)).equals(BigInteger.valueOf((long)2500000))) {
+                //valmode = !valmode;
             }
             if (currValI == vals.size()) {
 //                System.out.println(r);
@@ -1266,6 +1278,11 @@ public class Refactored implements SolverInterface {
         }
 
         char[][] resGrid = dfs();
+        for (int i = 0; i < history.size(); i++) {
+            Entry hist = history.get(i);
+            System.out.println(hist.r + " " + hist.c + " " + hist.vals.get(hist.valI));
+        }
+
         return resGrid;
     }
 }
