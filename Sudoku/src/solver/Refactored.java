@@ -135,7 +135,7 @@ public class Refactored implements SolverInterface {
         entry.vals = vals;
         entry.domainChanges = domainChanges;
         history.push(entry);
-        System.out.println(entry.r + " " + entry.c + " " + getChar(entry.vals.get(entry.valI)));
+        //System.out.println(entry.r + " " + entry.c + " " + getChar(entry.vals.get(entry.valI)));
         return !pruneDeadend;
     }
 
@@ -148,7 +148,7 @@ public class Refactored implements SolverInterface {
 //            System.out.println(r);
 //            System.out.println(c);
 //        }
-        System.out.println("POP " + r + " " + c + " " + grid[r][c]);
+        //System.out.println("POP " + r + " " + c + " " + grid[r][c]);
         grid[r][c] = empty;
         DomainSizeEntry se = domainSize.get(r).get(c);
         se.isEmpty = true;
@@ -766,7 +766,8 @@ public class Refactored implements SolverInterface {
         r = pos[0];
         c = pos[1];
         dom = domain.get(r).get(c);
-        vals = getValOrder(r, c, dom);
+        vals = new ArrayList<Integer>(dom.subList(0, domainSize.get(r).get(c).size));
+        //vals = getValOrder(r, c, dom);
         boolean backtracking = false;
         do {
             if (vals.size() == 0) {
@@ -836,7 +837,8 @@ public class Refactored implements SolverInterface {
             r = pos[0];
             c = pos[1];
             dom = domain.get(r).get(c);
-            vals = getValOrder(r, c, dom);
+            vals = new ArrayList<Integer>(dom.subList(0, domainSize.get(r).get(c).size));
+            //vals = getValOrder(r, c, dom);
             currValI = 0;
 //            System.out.println("PUSHING WORKED");
 //            System.out.println(depth);
