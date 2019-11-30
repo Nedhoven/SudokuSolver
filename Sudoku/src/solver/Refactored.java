@@ -1168,7 +1168,7 @@ public class Refactored implements SolverInterface {
         r = pos[0];
         c = pos[1];
         dom = domain.get(r).get(c);
-        if (valmode == DEFAULT) {
+        if (false && valmode == DEFAULT) {
             vals = dom;
         }
         else {
