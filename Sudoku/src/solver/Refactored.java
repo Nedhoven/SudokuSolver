@@ -26,8 +26,8 @@ public class Refactored implements SolverInterface {
 
     private static final boolean DEFAULT = false;
     private static final boolean SECOND = true;
-    private boolean varmode = DEFAULT;
-    private boolean valmode = DEFAULT;
+    private boolean varmode = SECOND;
+    private boolean valmode = SECOND;
 
     private Stack<ArrayList<Integer>> calls;
     private ArrayList<ArrayList<DomainSizeEntry>> domainSize;
@@ -317,7 +317,7 @@ public class Refactored implements SolverInterface {
         entry.domainChanges = domainChanges;
         history.push(entry);
 
-        System.out.println(r + " " + c + " " + getChar(vals.get(currValI)));
+        //System.out.println(r + " " + c + " " + getChar(vals.get(currValI)));
 
         PlacesSizeEntry re = rowPlacesSize.get(r).get(num);
         PlacesSizeEntry ce = colPlacesSize.get(c).get(num);
@@ -355,7 +355,7 @@ public class Refactored implements SolverInterface {
 //            System.out.println(r);
 //            System.out.println(c);
 //        }
-        System.out.println("POP " + r + " " + c + " " + grid[r][c]);
+        //System.out.println("POP " + r + " " + c + " " + grid[r][c]);
         int oldNum = getNum(grid[r][c]);
 
         PlacesSizeEntry ore = rowPlacesSize.get(r).get(oldNum);
@@ -1168,7 +1168,7 @@ public class Refactored implements SolverInterface {
         r = pos[0];
         c = pos[1];
         dom = domain.get(r).get(c);
-        if (true || valmode == DEFAULT) {
+        if (valmode == DEFAULT) {
             vals = new ArrayList<Integer>(dom.subList(0, domainSize.get(r).get(c).size));
         }
         else {
