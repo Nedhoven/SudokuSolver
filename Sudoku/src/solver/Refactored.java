@@ -27,7 +27,7 @@ public class Refactored implements SolverInterface {
     private static final boolean DEFAULT = false;
     private static final boolean SECOND = true;
     private boolean varmode = SECOND;
-    private boolean valmode = SECOND;
+    private boolean valmode = DEFAULT;
 
     private Stack<ArrayList<Integer>> calls;
     private ArrayList<ArrayList<DomainSizeEntry>> domainSize;
@@ -1168,8 +1168,9 @@ public class Refactored implements SolverInterface {
         r = pos[0];
         c = pos[1];
         dom = domain.get(r).get(c);
-        if (valmode == DEFAULT) {
-            vals = new ArrayList<Integer>(dom.subList(0, domainSize.get(r).get(c).size));
+        if (true || valmode == DEFAULT) {
+            vals = dom;
+            //vals = new ArrayList<Integer>(dom.subList(0, domainSize.get(r).get(c).size));
         }
         else {
             vals = getValOrder(r, c, dom);
@@ -1184,17 +1185,17 @@ public class Refactored implements SolverInterface {
 //            System.out.println(grid[r][c]);
 //            System.out.println(currValI);
             reccalls = reccalls.add(BigInteger.valueOf((long)1));
-            if (reccalls.mod(BigInteger.valueOf((long)5000000)).equals(BigInteger.valueOf((long)0))) {
+            if (reccalls.mod(BigInteger.valueOf((long)500000)).equals(BigInteger.valueOf((long)0))) {
                 //varmode = !varmode;
                 System.out.println("RECCALLS : " + String.valueOf(reccalls));
                 System.out.println("DEPTH " + String.valueOf(depth));
                 show(grid);
                 System.out.println();
             }
-            if (reccalls.mod(BigInteger.valueOf((long)5000000)).equals(BigInteger.valueOf((long)2500000))) {
+            if (reccalls.mod(BigInteger.valueOf((long)500000)).equals(BigInteger.valueOf((long)250000))) {
                 //valmode = !valmode;
             }
-            if (currValI == vals.size()) {
+            if (currValI == domainSize.get(r).get(c).size) {
 //                System.out.println(r);
 //                System.out.println(c);
 //                System.out.println(reccalls);
@@ -1247,8 +1248,13 @@ public class Refactored implements SolverInterface {
             r = pos[0];
             c = pos[1];
             dom = domain.get(r).get(c);
-            vals = new ArrayList<Integer>(dom.subList(0, domainSize.get(r).get(c).size));
-            //vals = getValOrder(r, c, dom);
+            if (true || valmode == DEFAULT) {
+                vals = dom;
+                //vals = new ArrayList<Integer>(dom.subList(0, domainSize.get(r).get(c).size));
+            }
+            else {
+                vals = getValOrder(r, c, dom);
+            }
             currValI = 0;
 //            System.out.println("PUSHING WORKED");
 //            System.out.println(depth);
