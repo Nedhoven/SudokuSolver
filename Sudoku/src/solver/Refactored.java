@@ -759,14 +759,15 @@ public class Refactored implements SolverInterface {
         int[] pos;
         int r = 0;
         int c = -1;
-        ArrayList<Integer> dom = new ArrayList<Integer>();
-        ArrayList<Integer> vals = new ArrayList<Integer>();
+        ArrayList<Integer> dom;
+        ArrayList<Integer> vals;
         Entry prevEntry = null;
         pos = getNextPos(r, c);
         r = pos[0];
         c = pos[1];
         dom = domain.get(r).get(c);
-        vals = new ArrayList<Integer>(dom.subList(0, domainSize.get(r).get(c).size));
+        vals = dom;
+        //vals = new ArrayList<Integer>(dom.subList(0, domainSize.get(r).get(c).size));
         //vals = getValOrder(r, c, dom);
         boolean backtracking = false;
         do {
@@ -784,7 +785,7 @@ public class Refactored implements SolverInterface {
                 show(grid);
                 System.out.println();
             }
-            if (currValI == vals.size()) {
+            if (currValI == domainSize.get(r).get(c).size) {
 //                System.out.println(r);
 //                System.out.println(c);
 //                System.out.println(reccalls);
@@ -837,7 +838,8 @@ public class Refactored implements SolverInterface {
             r = pos[0];
             c = pos[1];
             dom = domain.get(r).get(c);
-            vals = new ArrayList<Integer>(dom.subList(0, domainSize.get(r).get(c).size));
+            //vals = new ArrayList<Integer>(dom.subList(0, domainSize.get(r).get(c).size));
+            vals = dom;
             //vals = getValOrder(r, c, dom);
             currValI = 0;
 //            System.out.println("PUSHING WORKED");
