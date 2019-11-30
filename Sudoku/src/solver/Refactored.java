@@ -135,6 +135,7 @@ public class Refactored implements SolverInterface {
         entry.vals = vals;
         entry.domainChanges = domainChanges;
         history.push(entry);
+        System.out.println(entry.r + " " + entry.c + " " + getChar(entry.vals.get(entry.valI)));
         return !pruneDeadend;
     }
 
@@ -862,6 +863,10 @@ public class Refactored implements SolverInterface {
 
         if (isFull(grid)) {
             return grid;
+        }
+        for (int i = 0; i < history.size(); i++) {
+            Entry hist = history.get(i);
+            System.out.println(hist.r + " " + hist.c + " " + getChar(hist.vals.get(hist.valI)));
         }
 
         char[][] resGrid = dfs();
