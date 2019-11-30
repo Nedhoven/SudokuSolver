@@ -355,7 +355,7 @@ public class Refactored implements SolverInterface {
 //            System.out.println(r);
 //            System.out.println(c);
 //        }
-        System.out.println(r + " " + c + " " + grid[r][c]);
+        System.out.println("POP " + r + " " + c + " " + grid[r][c]);
         int oldNum = getNum(grid[r][c]);
 
         PlacesSizeEntry ore = rowPlacesSize.get(r).get(oldNum);
