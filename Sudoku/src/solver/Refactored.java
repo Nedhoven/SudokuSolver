@@ -766,12 +766,12 @@ public class Refactored implements SolverInterface {
         r = pos[0];
         c = pos[1];
         dom = domain.get(r).get(c);
-        vals = dom;
+//        vals = dom;
         //vals = new ArrayList<Integer>(dom.subList(0, domainSize.get(r).get(c).size));
-        //vals = getValOrder(r, c, dom);
+        vals = getValOrder(r, c, dom);
         boolean backtracking = false;
         do {
-            if (vals.size() == 0) {
+            if (domainSize.get(r).get(c).size == 0) {
                 System.out.println("BADBADBAD");
             }
 //            System.out.println("VALS SIZE FOR  " + r + " " + c);
@@ -839,8 +839,8 @@ public class Refactored implements SolverInterface {
             c = pos[1];
             dom = domain.get(r).get(c);
             //vals = new ArrayList<Integer>(dom.subList(0, domainSize.get(r).get(c).size));
-            vals = dom;
-            //vals = getValOrder(r, c, dom);
+            //vals = dom;
+            vals = getValOrder(r, c, dom);
             currValI = 0;
 //            System.out.println("PUSHING WORKED");
 //            System.out.println(depth);
