@@ -135,7 +135,7 @@ public class Refactored implements SolverInterface {
         entry.vals = vals;
         entry.domainChanges = domainChanges;
         history.push(entry);
-        //System.out.println(entry.r + " " + entry.c + " " + getChar(entry.vals.get(entry.valI)));
+        System.out.println(entry.r + " " + entry.c + " " + getChar(entry.vals.get(entry.valI)));
         return !pruneDeadend;
     }
 
