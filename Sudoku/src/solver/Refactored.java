@@ -135,7 +135,7 @@ public class Refactored implements SolverInterface {
         entry.vals = vals;
         entry.domainChanges = domainChanges;
         history.push(entry);
-//        System.out.println(entry.r + " " + entry.c + " " + getChar(entry.vals.get(entry.valI)));
+        System.out.println(entry.r + " " + entry.c + " " + getChar(entry.vals.get(entry.valI)));
         return !pruneDeadend;
     }
 
@@ -148,7 +148,7 @@ public class Refactored implements SolverInterface {
 //            System.out.println(r);
 //            System.out.println(c);
 //        }
-//        System.out.println("POP " + r + " " + c + " " + grid[r][c]);
+        System.out.println("POP " + r + " " + c + " " + grid[r][c]);
         grid[r][c] = empty;
         DomainSizeEntry se = domainSize.get(r).get(c);
         se.isEmpty = true;
