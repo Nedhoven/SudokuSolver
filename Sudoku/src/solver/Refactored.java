@@ -875,6 +875,8 @@ public class Refactored implements SolverInterface {
         }
 
         char[][] resGrid = dfs();
+        System.out.println("RECCALLS: " + reccalls);
+        System.out.println("DEPTH: " + maxRecdepth);
         return resGrid;
     }
 }
