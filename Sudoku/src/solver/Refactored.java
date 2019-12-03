@@ -26,7 +26,7 @@ public class Refactored implements SolverInterface {
 
     private static final boolean DEFAULT = false;
     private static final boolean SECOND = true;
-    private boolean varmode = SECOND;
+    private boolean varmode = DEFAULT;
     private boolean valmode = DEFAULT;
 
     private Stack<ArrayList<Integer>> calls;
@@ -1185,14 +1185,14 @@ public class Refactored implements SolverInterface {
 //            System.out.println(grid[r][c]);
 //            System.out.println(currValI);
             reccalls = reccalls.add(BigInteger.valueOf((long)1));
-            if (reccalls.mod(BigInteger.valueOf((long)500000)).equals(BigInteger.valueOf((long)0))) {
+            if (reccalls.mod(BigInteger.valueOf((long)5000000)).equals(BigInteger.valueOf((long)0))) {
                 //varmode = !varmode;
                 System.out.println("RECCALLS : " + String.valueOf(reccalls));
                 System.out.println("DEPTH " + String.valueOf(depth));
                 show(grid);
                 System.out.println();
             }
-            if (reccalls.mod(BigInteger.valueOf((long)500000)).equals(BigInteger.valueOf((long)250000))) {
+            if (reccalls.mod(BigInteger.valueOf((long)5000000)).equals(BigInteger.valueOf((long)2500000))) {
                 //valmode = !valmode;
             }
             if (currValI == domainSize.get(r).get(c).size) {
