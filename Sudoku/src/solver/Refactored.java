@@ -26,7 +26,7 @@ public class Refactored implements SolverInterface {
 
     private static final boolean DEFAULT = false;
     private static final boolean SECOND = true;
-    private boolean varmode = DEFAULT;
+    private boolean varmode = SECOND;
     private boolean valmode = DEFAULT;
 
     private Stack<ArrayList<Integer>> calls;
@@ -950,7 +950,7 @@ public class Refactored implements SolverInterface {
         int[] minpos = new int[2];
         minpos[0] = e.r;
         minpos[1] = e.c;
-        if (varmode == DEFAULT) {
+        if (varmode == DEFAULT || e.size == 1) {
             return minpos;
         }
         else {
