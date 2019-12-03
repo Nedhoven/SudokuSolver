@@ -16,7 +16,11 @@ public class Main {
             useOptimized = false;
         }
         if (runFlag) {
-            char[][] board = getBoard();
+            String filename = null;
+            if (args.length >= 2) {
+                filename = args[1];
+            }
+            char[][] board = getBoard(filename);
             double startTime = System.nanoTime();
             char[][] ans = calculate(board, useOptimized);
             double endTime = System.nanoTime();
@@ -28,20 +32,21 @@ public class Main {
         }
     }
     
-    public static char[][] getBoard() {
-        Example ex = new Example(9);
-        return ex.getGrid();
+    public static char[][] getBoard(String filename) {
+        Example ex = new Example(25);
+        return ex.getGrid(filename);
     }
     
     public static char[][] calculate(char[][] board, boolean useOptimized) {
         int n = board.length;
         SolverInterface s;
         if (useOptimized) {
-            s = new Refactored(9);
+            s = new Refactored(25);
         }
         else {
             s = new Solver(n);
         }
+        show(board);
         char[][] ans = s.solveSudoku(board);
         if (ans == null) {
             System.err.println("SUDOKU UNSOLVEABLE!");
