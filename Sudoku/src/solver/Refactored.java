@@ -27,7 +27,7 @@ public class Refactored implements SolverInterface {
     private static final boolean DEFAULT = false;
     private static final boolean SECOND = true;
     private boolean varmode = SECOND;
-    private boolean valmode = DEFAULT;
+    private boolean valmode = SECOND;
 
     private Stack<ArrayList<Integer>> calls;
     private ArrayList<ArrayList<DomainSizeEntry>> domainSize;
@@ -662,9 +662,21 @@ public class Refactored implements SolverInterface {
                 System.out.println(" BAD " + String.valueOf(row) + " " + String.valueOf(col));
                 return false;
             }
-            for (int domNum : getDomainVals(row, col)) {
+            for (int domNum : getDomainVals(row, col)) { // this is only one value
                 if (grid[pos[0]][pos[1]] == empty) {
                     grid[pos[0]][pos[1]] = getChar(domNum);
+                    PlacesSizeEntry re = rowPlacesSize.get(pos[0]).get(domNum);
+                    PlacesSizeEntry ce = colPlacesSize.get(pos[1]).get(domNum);
+                    PlacesSizeEntry be = boxPlacesSize.get(getBox(pos[0], pos[1])).get(domNum);
+                    re.isFilledIn = true;
+                    ce.isFilledIn = true;
+                    be.isFilledIn = true;
+                    placesQueue.remove(re);
+                    placesQueue.remove(ce);
+                    placesQueue.remove(be);
+                    placesQueue.add(re);
+                    placesQueue.add(ce);
+                    placesQueue.add(be);
                 }
 
                 if (getChar(domNum) == '0') {
