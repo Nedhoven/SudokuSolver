@@ -39,13 +39,7 @@ public class Main {
     
     public static char[][] calculate(char[][] board, boolean useOptimized) {
         int n = board.length;
-        SolverInterface s;
-        if (useOptimized) {
-            s = new Refactored(25);
-        }
-        else {
-            s = new Solver(n);
-        }
+        Solver s = new Solver(25);
         show(board);
         char[][] ans = s.solveSudoku(board);
         if (ans == null) {
@@ -60,13 +54,4 @@ public class Main {
             System.out.println(Arrays.toString(arr));
         }
     }
-    
-    public static void runTest() {
-//        Optimized s = new Optimized(9);
-//        char[][] board = getBoard();
-//        double startTime =
-//        boolean ans = s.solveSudoku(board);
-//        System.out.println(Arrays.toString(s.getChar()));
-    }
-    
 }
