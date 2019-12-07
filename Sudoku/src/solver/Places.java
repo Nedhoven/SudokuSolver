@@ -34,25 +34,14 @@ public class Places {
         return placesQueue.peek();
     }
 
-    private boolean isInDomain(int r, int c, int num, ArrayList<ArrayList<ArrayList<Integer>>> domain, ArrayList<ArrayList<DomainSizeEntry>> domainSize) {
-        ArrayList<Integer> dom = domain.get(r).get(c);
-        int domSize = domainSize.get(r).get(c).size;
-        int index = dom.indexOf(num);
-        if (index >= domSize) {
-            return false;
-        }
-        else {
-            return true;
-        }
-    }
 
-    public int[] getPosFromPlaces(PlacesSizeEntry pe, char[][] grid, int size, ArrayList<ArrayList<ArrayList<Integer>>> domain, ArrayList<ArrayList<DomainSizeEntry>> domainSize) {
+    public int[] getPosFromPlaces(PlacesSizeEntry pe, char[][] grid, int size, Domains domains) {
         int[] placepos = new int[2];
         int num = pe.num;
         if (pe.indexType == PlacesSizeEntry.ROW) {
             placepos[0] = pe.index;
             for (int j = 0; j < size; j++) {
-                if (isInDomain(pe.index, j, num, domain, domainSize)) {
+                if (domains.isInDomain(pe.index, j, num)) {
                     placepos[1] = j;
                     if (grid[placepos[0]][placepos[1]] != empty) {
                         System.out.println("0 OOPS V BAD");
@@ -70,7 +59,7 @@ public class Places {
         else if (pe.indexType == PlacesSizeEntry.COL) {
             placepos[1] = pe.index;
             for (int i = 0; i < size; i++) {
-                if (isInDomain(i, pe.index, num, domain, domainSize)) {
+                if (domains.isInDomain(i, pe.index, num)) {
                     placepos[0] = i;
                     if (grid[placepos[0]][placepos[1]] != empty) {
                         System.out.println("1 OOPS V BAD");
@@ -86,7 +75,7 @@ public class Places {
             for (int[] boxpos : Util.getBoxPositions(box, root)) {
                 int i = boxpos[0];
                 int j = boxpos[1];
-                if (isInDomain(i, j, num, domain, domainSize)) {
+                if (domains.isInDomain(i, j, num)) {
                     placepos[0] = i;
                     placepos[1] = j;
                     if (grid[placepos[0]][placepos[1]] != empty) {
@@ -111,23 +100,11 @@ public class Places {
         boxPlacesSize = new ArrayList<ArrayList<PlacesSizeEntry>>();
 
         for (int i = 0; i < size; i++) {
-            //            rowPlaces.add(new ArrayList<ArrayList<Integer>>());
-            //            colPlaces.add(new ArrayList<ArrayList<Integer>>());
-            //            boxPlaces.add(new ArrayList<ArrayList<Integer>>());
-
             rowPlacesSize.add(new ArrayList<PlacesSizeEntry>());
             colPlacesSize.add(new ArrayList<PlacesSizeEntry>());
             boxPlacesSize.add(new ArrayList<PlacesSizeEntry>());
 
             for (int num = 0; num < size; num++) {
-                //                rowPlaces.get(i).add(new ArrayList<Integer>());
-                //                colPlaces.get(i).add(new ArrayList<Integer>());
-                //                boxPlaces.add(new ArrayList<Integer>());
-                //                for (int j = 0; j < size; j++) {
-                //                    rowPlaces.get(i).get(num).add(j);
-                //                    colPlaces.get(i).get(num).add(j);
-                //                    boxPlaces.get(i).get(num).add(j);
-                //                }
                 PlacesSizeEntry e = new PlacesSizeEntry(i, num, size, PlacesSizeEntry.ROW);
                 PlacesSizeEntry f = new PlacesSizeEntry(i, num, size, PlacesSizeEntry.COL);
                 PlacesSizeEntry g = new PlacesSizeEntry(i, num, size, PlacesSizeEntry.BOX);
@@ -195,9 +172,6 @@ public class Places {
         PlacesSizeEntry oce = colPlacesSize.get(c).get(num);
         PlacesSizeEntry obe = boxPlacesSize.get(box).get(num);
         ore.isFilledIn = false;
-//        System.out.println("UNFILLING ");
-//        System.out.println(ore.index);
-//        System.out.println(ore.num);
         oce.isFilledIn = false;
         obe.isFilledIn = false;
         placesQueue.remove(ore);
