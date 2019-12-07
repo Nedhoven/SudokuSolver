@@ -23,6 +23,7 @@ public class Solver {
     private static final int DEFAULT = 0;
     private static final int SECOND = 1;
 
+    ///// SET THIS TO `DEFAULT` FOR THE DEFAULT STRATEGY, OR `SECOND` FOR THE SECOND STRATEGY.
     private final int varmode = SECOND;
 
     // A stack to keep track of the current path in the search; each entry tracks:
@@ -49,295 +50,6 @@ public class Solver {
     private char getChar(int num) {
         return Util.getChar(num);
     }
-
-
-
-
-    ////////// HISTORY MANAGEMENT METHODS /////////
-    private boolean pushGrid(int r, int c, char cc, int currValI, ArrayList<Integer> vals) {
-        boolean pruneDeadend = false;
-        int num = getNum(cc);
-        grid[r][c] = cc;
-
-        domains.fillIn(r, c);
-
-        ArrayList<Integer> nums = new ArrayList<Integer>();
-        nums.add(num);
-        int[] change = domains.setDomain(r, c, nums);
-        PruneResult pruneRes = domains.pruneDomains(r, c, num, grid);
-        Set<int[]> domainChanges = pruneRes.changes;
-        if (pruneRes.hasZero) {
-            pruneDeadend = true;
-        }
-        domainChanges.add(change);
-
-        Entry entry = new Entry();
-        entry.r = r;
-        entry.c = c;
-        entry.valI = currValI;
-        entry.vals = vals;
-        entry.domainChanges = domainChanges;
-        history.push(entry);
-
-        if (varmode == SECOND) {
-            places.fillIn(r, c, getBox(r, c), num);
-        }
-        return !pruneDeadend;
-    }
-
-    private Entry popGrid() {
-        Entry currEntry = history.pop();
-        int r = currEntry.r;
-        int c = currEntry.c;
-        if (varmode == SECOND) {
-            places.unfill(r, c, getBox(r, c), getNum(grid[r][c]));
-        }
-        grid[r][c] = empty;
-        domains.unfill(r, c);
-
-        Set<int[]> changes = currEntry.domainChanges;
-        domains.updateFromChanges(changes);
-        if (history.size() == 0) {
-            return null;
-        }
-        return history.peek();
-
-    }
-
-    public Solver(int n) {
-        size = n;
-        root = (int) Math.sqrt(n);
-
-        if (varmode == SECOND) {
-            places = new Places(size);
-        }
-        domains = new Domains(size, root, varmode, places);
-        history = new Stack<Entry>();
-    }
-    public static void show(char[][] board) {
-        for (char[] arr : board) {
-            System.out.println(Arrays.toString(arr));
-        }
-    }
-
-    private boolean checkRow(int r, int c, char cc, char[][] currGrid) {
-        for (int j = 0; j < size; j++) {
-            if (j == c) continue;
-            if (currGrid[r][j] == cc) {
-                System.out.println("BAD ROW");
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private boolean checkCol(int r, int c, char cc, char[][] currGrid) {
-        for (int i = 0; i < size; i++) {
-            if (i == r) continue;
-            if (currGrid[i][c] == cc) {
-                System.out.println("BAD COL");
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private boolean checkBox(int r, int c, char cc, char[][] currGrid) {
-        int box = getBox(r, c);
-        for (int[] pos : getBoxPositions(box)) {
-            if (pos[0] == r && pos[1] == c) continue;
-            if (currGrid[pos[0]][pos[1]] ==  cc) {
-                System.out.println("BAD BOX");
-                return false;
-            }
-        }
-        return true;
-    }
-
-    private boolean checkGrid(char[][] currGrid) {
-        for (int i = 0; i < size; i++) {
-            for (int j = 0; j < size; j++) {
-                char cc = currGrid[i][j];
-                if (cc == empty) continue;
-                if (!checkRow(i, j, cc, currGrid)) return false;
-                if (!checkCol(i, j, cc, currGrid)) return false;
-                if (!checkBox(i, j, cc, currGrid)) return false;
-            }
-        }
-        return true;
-    }
-
-    private int[] getPosPairFromInt(Integer posint) {
-        int[] pos = new int[2];
-        pos[0] = posint / size;
-        pos[1] = posint % size;
-        return pos;
-    }
-
-    private Integer getIntFromPosPair(int i, int j) {
-        return i * size + j;
-    }
-
-
-    private boolean propagate(LinkedList<Integer> lst) {
-        while (lst.size() > 0) {
-
-            Integer posint = lst.removeFirst();
-            int[] pos = getPosPairFromInt(posint);
-            int row = pos[0];
-            int col = pos[1];
-
-
-            if (domains.getSize(row, col) > 1) {
-                System.out.println("UH OH");
-            }
-
-            if (domains.getSize(row, col) == 0) {
-                show(grid);
-                System.out.println(" BAD " + String.valueOf(row) + " " + String.valueOf(col));
-                return false;
-            }
-            for (int domNum : domains.getDomainVals(row, col)) {
-                if (grid[pos[0]][pos[1]] == empty) {
-                    grid[pos[0]][pos[1]] = getChar(domNum);
-                    if (varmode == SECOND) {
-                        places.fillIn(pos[0], pos[1], getBox(pos[0], pos[1]), domNum);
-                    }
-                }
-
-                if (getChar(domNum) == '0') {
-                    System.out.println("WHOOPS");
-                }
-            }
-            int num = getNum(grid[pos[0]][pos[1]]);
-
-
-            for (int k = 0; k < size; k++) {
-
-                if (k != col && grid[row][k] == empty) {
-                    int oldRowmateSize = domains.getSize(row, k);
-                    domains.removeFromDomain(row, k, num);
-                    int newRowmateSize = domains.getSize(row, k);
-
-                    if (newRowmateSize == 1 && oldRowmateSize > 1) {
-
-                        lst.add(getIntFromPosPair(row, k));
-                    }
-                }
-
-                if (k != row && grid[k][col] == empty) {
-                    int oldColmateSize = domains.getSize(k, col);
-
-                    domains.removeFromDomain(k, col, num);
-                    int newColmateSize = domains.getSize(k, col);
-
-                    if (newColmateSize == 1 && oldColmateSize > 1) {
-
-                        lst.add(getIntFromPosPair(k, col));
-                    }
-                }
-            }
-
-            int box = getBox(row, col);
-            for (int[] boxPos : getBoxPositions(box)) {
-                int i = boxPos[0];
-                int j = boxPos[1];
-
-                if (i == row || j == col) continue; // we dealt with rowmates and colmates earlier
-                if (grid[i][j] != empty) continue;
-                int oldBoxmateSize = domains.getSize(i, j);;
-
-                domains.removeFromDomain(i, j, num);
-                int newBoxmateSize = domains.getSize(i, j);
-
-                if (newBoxmateSize == 1 && oldBoxmateSize > 1) {
-
-                    lst.add(getIntFromPosPair(i, j));
-                }
-            }
-        }
-        return true;
-    }
-
-    private boolean ac3() {
-        LinkedList<Integer> lst = new LinkedList<Integer>();
-        for (int i = 0; i < size; i++) {
-            for (int j = 0; j < size; j++) {
-
-                if (domains.getSize(i, j) == 1) {
-                    lst.addLast(getIntFromPosPair(i, j));
-                }
-            }
-        }
-        boolean ret = propagate(lst);
-        return ret;
-    }
-
-
-
-    private boolean init() {
-        boolean ans = true;
-        boolean res = checkGrid(grid);
-        if (!domains.initDomain(grid)) {
-            return false;
-        }
-        if (!res) {
-            System.out.println("BAD");
-        }
-        if (!ac3()) {
-            return false;
-        }
-        return res;
-    }
-
-    private int[] getNextPos() {
-        DomainSizeEntry e = domains.peek();
-        int[] minpos = new int[2];
-        minpos[0] = e.r;
-        minpos[1] = e.c;
-        if (varmode == SECOND && e.size > 1) {
-            PlacesSizeEntry pe = places.peek();
-            if (pe.isFilledIn) {
-                System.out.println("OOPS V BAD");
-            }
-            if (pe.size == 1) {
-                //System.out.println("USING SIZE HEURISTIC!");
-                return places.getPosFromPlaces(pe, grid, size, domains);
-            }
-        }
-        return minpos;
-    }
-
-
-    private int getBox(int r, int c) {
-        return Util.getBox(r, c, root);
-    }
-
-    private ArrayList<int[]> getBoxPositions(int box) {
-        return Util.getBoxPositions(box, root);
-    }
-
-
-
-    ///////// LOGGING CODE ///////////
-    private void logIteration(int iterations, int depth, char[][] grid) {
-        System.out.println("ITERATIONS : " + String.valueOf(iterations));
-        System.out.println("DEPTH " + String.valueOf(depth));
-        show(grid);
-        System.out.println();
-    }
-
-    private void updateDepthForLogging(int depth) {
-        if (depth > maxDepth) {
-            maxDepth = depth;
-        }
-        iterations++;
-        if (iterations % 1000000 == 0) {
-            logIteration(iterations, depth, grid);
-        }
-    }
-
-
 
     ///////// MAIN SEARCH METHODS /////////
     private char[][] dfs() {
@@ -446,4 +158,292 @@ public class Solver {
         return !domains.peek().isEmpty;
     }
 
+
+
+    ////////// HISTORY MANAGEMENT METHODS /////////
+    private boolean pushGrid(int r, int c, char cc, int currValI, ArrayList<Integer> vals) {
+        boolean pruneDeadend = false;
+        int num = getNum(cc);
+        grid[r][c] = cc;
+
+        domains.fillIn(r, c);
+
+        ArrayList<Integer> nums = new ArrayList<Integer>();
+        nums.add(num);
+        int[] change = domains.setDomain(r, c, nums);
+        PruneResult pruneRes = domains.pruneDomains(r, c, num, grid);
+        Set<int[]> domainChanges = pruneRes.changes;
+        if (pruneRes.hasZero) {
+            pruneDeadend = true;
+        }
+        domainChanges.add(change);
+
+        Entry entry = new Entry();
+        entry.r = r;
+        entry.c = c;
+        entry.valI = currValI;
+        entry.vals = vals;
+        entry.domainChanges = domainChanges;
+        history.push(entry);
+
+        if (varmode == SECOND) {
+            places.fillIn(r, c, getBox(r, c), num);
+        }
+        return !pruneDeadend;
+    }
+
+    private Entry popGrid() {
+        Entry currEntry = history.pop();
+        int r = currEntry.r;
+        int c = currEntry.c;
+        if (varmode == SECOND) {
+            places.unfill(r, c, getBox(r, c), getNum(grid[r][c]));
+        }
+        grid[r][c] = empty;
+        domains.unfill(r, c);
+
+        Set<int[]> changes = currEntry.domainChanges;
+        domains.updateFromChanges(changes);
+        if (history.size() == 0) {
+            return null;
+        }
+        return history.peek();
+
+    }
+
+    //// CONSTRUCTOR, INITIALIZATION /////
+    public Solver(int n) {
+        size = n;
+        root = (int) Math.sqrt(n);
+
+        if (varmode == SECOND) {
+            places = new Places(size);
+        }
+        domains = new Domains(size, root, varmode, places);
+        history = new Stack<Entry>();
+    }
+
+    private boolean init() {
+        boolean ans = true;
+        boolean res = checkGrid(grid);
+        if (!domains.initDomain(grid)) {
+            return false;
+        }
+        if (!res) {
+            System.out.println("BAD");
+        }
+        if (!ac3()) {
+            return false;
+        }
+        return res;
+    }
+
+
+    /////// HELPER METHODS ///////
+    public static void show(char[][] board) {
+        for (char[] arr : board) {
+            System.out.println(Arrays.toString(arr));
+        }
+    }
+
+    private boolean checkRow(int r, int c, char cc, char[][] currGrid) {
+        for (int j = 0; j < size; j++) {
+            if (j == c) continue;
+            if (currGrid[r][j] == cc) {
+                System.out.println("BAD ROW");
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean checkCol(int r, int c, char cc, char[][] currGrid) {
+        for (int i = 0; i < size; i++) {
+            if (i == r) continue;
+            if (currGrid[i][c] == cc) {
+                System.out.println("BAD COL");
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean checkBox(int r, int c, char cc, char[][] currGrid) {
+        int box = getBox(r, c);
+        for (int[] pos : getBoxPositions(box)) {
+            if (pos[0] == r && pos[1] == c) continue;
+            if (currGrid[pos[0]][pos[1]] ==  cc) {
+                System.out.println("BAD BOX");
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean checkGrid(char[][] currGrid) {
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+                char cc = currGrid[i][j];
+                if (cc == empty) continue;
+                if (!checkRow(i, j, cc, currGrid)) return false;
+                if (!checkCol(i, j, cc, currGrid)) return false;
+                if (!checkBox(i, j, cc, currGrid)) return false;
+            }
+        }
+        return true;
+    }
+
+    private int[] getPosPairFromInt(Integer posint) {
+        int[] pos = new int[2];
+        pos[0] = posint / size;
+        pos[1] = posint % size;
+        return pos;
+    }
+
+    private Integer getIntFromPosPair(int i, int j) {
+        return i * size + j;
+    }
+
+
+    ////////// AC3 ///////////
+    private boolean propagate(LinkedList<Integer> lst) {
+        while (lst.size() > 0) {
+
+            Integer posint = lst.removeFirst();
+            int[] pos = getPosPairFromInt(posint);
+            int row = pos[0];
+            int col = pos[1];
+
+
+            if (domains.getSize(row, col) > 1) {
+                System.out.println("UH OH");
+            }
+
+            if (domains.getSize(row, col) == 0) {
+                show(grid);
+                System.out.println(" BAD " + String.valueOf(row) + " " + String.valueOf(col));
+                return false;
+            }
+            for (int domNum : domains.getDomainVals(row, col)) {
+                if (grid[pos[0]][pos[1]] == empty) {
+                    grid[pos[0]][pos[1]] = getChar(domNum);
+                    if (varmode == SECOND) {
+                        places.fillIn(pos[0], pos[1], getBox(pos[0], pos[1]), domNum);
+                    }
+                }
+
+                if (getChar(domNum) == '0') {
+                    System.out.println("WHOOPS");
+                }
+            }
+            int num = getNum(grid[pos[0]][pos[1]]);
+
+
+            for (int k = 0; k < size; k++) {
+
+                if (k != col && grid[row][k] == empty) {
+                    int oldRowmateSize = domains.getSize(row, k);
+                    domains.removeFromDomain(row, k, num);
+                    int newRowmateSize = domains.getSize(row, k);
+
+                    if (newRowmateSize == 1 && oldRowmateSize > 1) {
+
+                        lst.add(getIntFromPosPair(row, k));
+                    }
+                }
+
+                if (k != row && grid[k][col] == empty) {
+                    int oldColmateSize = domains.getSize(k, col);
+
+                    domains.removeFromDomain(k, col, num);
+                    int newColmateSize = domains.getSize(k, col);
+
+                    if (newColmateSize == 1 && oldColmateSize > 1) {
+
+                        lst.add(getIntFromPosPair(k, col));
+                    }
+                }
+            }
+
+            int box = getBox(row, col);
+            for (int[] boxPos : getBoxPositions(box)) {
+                int i = boxPos[0];
+                int j = boxPos[1];
+
+                if (i == row || j == col) continue; // we dealt with rowmates and colmates earlier
+                if (grid[i][j] != empty) continue;
+                int oldBoxmateSize = domains.getSize(i, j);;
+
+                domains.removeFromDomain(i, j, num);
+                int newBoxmateSize = domains.getSize(i, j);
+
+                if (newBoxmateSize == 1 && oldBoxmateSize > 1) {
+
+                    lst.add(getIntFromPosPair(i, j));
+                }
+            }
+        }
+        return true;
+    }
+
+    private boolean ac3() {
+        LinkedList<Integer> lst = new LinkedList<Integer>();
+        for (int i = 0; i < size; i++) {
+            for (int j = 0; j < size; j++) {
+
+                if (domains.getSize(i, j) == 1) {
+                    lst.addLast(getIntFromPosPair(i, j));
+                }
+            }
+        }
+        boolean ret = propagate(lst);
+        return ret;
+    }
+
+    private int[] getNextPos() {
+        DomainSizeEntry e = domains.peek();
+        int[] minpos = new int[2];
+        minpos[0] = e.r;
+        minpos[1] = e.c;
+        if (varmode == SECOND && e.size > 1) {
+            PlacesSizeEntry pe = places.peek();
+            if (pe.isFilledIn) {
+                System.out.println("OOPS V BAD");
+            }
+            if (pe.size == 1) {
+                //System.out.println("USING SIZE HEURISTIC!");
+                return places.getPosFromPlaces(pe, grid, size, domains);
+            }
+        }
+        return minpos;
+    }
+
+
+    private int getBox(int r, int c) {
+        return Util.getBox(r, c, root);
+    }
+
+    private ArrayList<int[]> getBoxPositions(int box) {
+        return Util.getBoxPositions(box, root);
+    }
+
+
+
+    ///////// LOGGING CODE ///////////
+    private void logIteration(int iterations, int depth, char[][] grid) {
+        System.out.println("ITERATIONS : " + String.valueOf(iterations));
+        System.out.println("DEPTH " + String.valueOf(depth));
+        show(grid);
+        System.out.println();
+    }
+
+    private void updateDepthForLogging(int depth) {
+        if (depth > maxDepth) {
+            maxDepth = depth;
+        }
+        iterations++;
+        if (iterations % 1000000 == 0) {
+            logIteration(iterations, depth, grid);
+        }
+    }
 }
