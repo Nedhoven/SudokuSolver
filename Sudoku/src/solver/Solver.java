@@ -58,67 +58,42 @@ public class Solver {
     private char getChar(int num) {
         return num < 9 ? (char) (num + '1') : (char) (num + 'A' - 9);
     }
+
     private int[] setDomain(int i, int j, ArrayList<Integer> nums) {
         int[] change = new int[4];
         change[0] = i;
         change[1] = j;
         DomainSizeEntry domSizeE = domainSize.get(i).get(j);
-//        System.out.println("DSE " + domSizeE.size);
         change[2] = domSizeE.size;
-        //domain.get(i).get(j).size();
         ArrayList<Integer> dom = domain.get(i).get(j);
 
-        if (varmode == DEFAULT) {
+        ArrayList<Integer> numsToRemove = new ArrayList<Integer>();
+        ArrayList<Integer> numsToAdd = new ArrayList<Integer>();
+        if (varmode == SECOND) {
             for (int num : nums) {
-                dom.remove(dom.indexOf(num));
-                dom.add(0, num);
-            }
-            int numsSize = nums.size();
-            domSizeE.size = numsSize;
-        }
-        else {
-            Collections.sort(nums);
-
-            int box = getBox(i, j);
-            Iterator<Integer> numsIt = nums.iterator();
-            int currNum = numsIt.next();
-            for (int k = 0; k < size; k++) {
-                int dind = dom.indexOf(k);
-
-                if (k == currNum) {
-                    // in nums, not in domain
-                    if (dind >= domSizeE.size) {
-                        dom.remove(dind);
-                        dom.add(0, k);
-                        domSizeE.size++;
-                        if (varmode == SECOND) {
-                            places.add(i, j, box, k);
-                        }
-                    }
-                    if (numsIt.hasNext()) {
-                        currNum = numsIt.next();
-                    }
-                    else {
-                        currNum = -1;
-                    }
+                if (dom.indexOf(num) >= domSizeE.size) {
+                    numsToAdd.add(num);
                 }
-                else {
-                    // not in nums, but is in domain
-                    if (dind < domSizeE.size) {
-                        dom.remove(dind);
-                        dom.add(domSizeE.size - 1, k);
-                        domSizeE.size--;
-                        if (varmode == SECOND) {
-                            places.remove(i, j, box, k);
-                        }
-                    }
+            }
+
+            for (int k = 0; k < domSizeE.size; k++) {
+                int domNum = dom.get(k);
+                if (nums.indexOf(domNum) == -1) {
+                    numsToRemove.add(domNum);
                 }
             }
         }
+        for (int num : nums) {
+            dom.remove(dom.indexOf(num));
+            dom.add(0, num);
+        }
+        int numsSize = nums.size();
+        domSizeE.size = numsSize;
 
+        if (varmode == SECOND) {
+            places.updateFromChange(i, j, getBox(i, j), numsToAdd, numsToRemove);
+        }
 
-        //int numsSize = nums.size();
-        //domainSize.get(i).get(j).size = numsSize;
         change[3] = domSizeE.size;
 
         DomainSizeEntry e =  domainSize.get(i).get(j);

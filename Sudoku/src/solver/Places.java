@@ -209,8 +209,13 @@ public class Places {
 
     }
 
-    public void updateFromChange(int r, int c, int box, int[] addedNums, int[] removedNums) {
-
+    public void updateFromChange(int r, int c, int box, ArrayList<Integer> addedNums, ArrayList<Integer> removedNums) {
+        for (int num : addedNums) {
+            add(r, c, box, num);
+        }
+        for (int num : removedNums) {
+            remove(r, c, box, num);
+        }
     }
 
 }
