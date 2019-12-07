@@ -23,7 +23,7 @@ public class Solver {
     private static final int DEFAULT = 0;
     private static final int SECOND = 1;
 
-    private final int varmode = DEFAULT;
+    private final int varmode = SECOND;
 
     // 2D ArrayList whose entry at each cell is the domain of the cell, itself an ArrayList of Integers
     private ArrayList<ArrayList<ArrayList<Integer>>> domain;
@@ -68,43 +68,54 @@ public class Solver {
         //domain.get(i).get(j).size();
         ArrayList<Integer> dom = domain.get(i).get(j);
 
-        Collections.sort(nums);
+        if (varmode == DEFAULT) {
+            for (int num : nums) {
+                dom.remove(dom.indexOf(num));
+                dom.add(0, num);
+            }
+            int numsSize = nums.size();
+            domSizeE.size = numsSize;
+        }
+        else {
+            Collections.sort(nums);
 
-        int box = getBox(i, j);
-        Iterator<Integer> numsIt = nums.iterator();
-        int currNum = numsIt.next();
-        for (int k = 0; k < size; k++) {
-            int dind = dom.indexOf(k);
+            int box = getBox(i, j);
+            Iterator<Integer> numsIt = nums.iterator();
+            int currNum = numsIt.next();
+            for (int k = 0; k < size; k++) {
+                int dind = dom.indexOf(k);
 
-            if (k == currNum) {
-                // in nums, not in domain
-                if (dind >= domSizeE.size) {
-                    dom.remove(dind);
-                    dom.add(0, k);
-                    domSizeE.size++;
-                    if (varmode == SECOND) {
-                        places.add(i, j, box, k);
+                if (k == currNum) {
+                    // in nums, not in domain
+                    if (dind >= domSizeE.size) {
+                        dom.remove(dind);
+                        dom.add(0, k);
+                        domSizeE.size++;
+                        if (varmode == SECOND) {
+                            places.add(i, j, box, k);
+                        }
+                    }
+                    if (numsIt.hasNext()) {
+                        currNum = numsIt.next();
+                    }
+                    else {
+                        currNum = -1;
                     }
                 }
-                if (numsIt.hasNext()) {
-                    currNum = numsIt.next();
-                }
                 else {
-                    currNum = -1;
-                }
-            }
-            else {
-                // not in nums, but is in domain
-                if (dind < domSizeE.size) {
-                    dom.remove(dind);
-                    dom.add(domSizeE.size - 1, k);
-                    domSizeE.size--;
-                    if (varmode == SECOND) {
-                        places.remove(i, j, box, k);
+                    // not in nums, but is in domain
+                    if (dind < domSizeE.size) {
+                        dom.remove(dind);
+                        dom.add(domSizeE.size - 1, k);
+                        domSizeE.size--;
+                        if (varmode == SECOND) {
+                            places.remove(i, j, box, k);
+                        }
                     }
                 }
             }
         }
+
 
         //int numsSize = nums.size();
         //domainSize.get(i).get(j).size = numsSize;
