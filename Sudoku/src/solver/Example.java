@@ -144,7 +144,7 @@ public class Example {
                         filename = "board_2525_100_2.txt";
                     }
 //                    File f = new File("/mnt/c/Users/danie/Downloads/board_0.txt");
-                    File f = new File("/mnt/c/Users/danie/cs271/" + filename);
+                    File f = new File("../input/" + filename);
                     BufferedReader br = new BufferedReader(new FileReader(f));
                     String st;
                     int i = 0;
@@ -157,13 +157,13 @@ public class Example {
                             if (part.length() == 0) continue;
 //                            System.out.println(part);
                             //if (part.replaceAll("\\s+", " ") == "-1") {
-                            board[i][j] = part.charAt(0);
-//                            if (part.charAt(0) == '-') {
-//                                board[i][j] = '0';
-//                            }
-//                            else {
-//                                board[i][j] = adjustChar(part.charAt(0));
-//                            }
+//                            board[i][j] = part.charAt(0);
+                            if (part.charAt(0) == '-') {
+                                board[i][j] = '0';
+                            }
+                            else {
+                                board[i][j] = adjustChar(part.charAt(0));
+                            }
                             j++;
                         }
                         i++;
