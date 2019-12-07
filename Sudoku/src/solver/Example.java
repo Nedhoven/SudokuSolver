@@ -157,13 +157,13 @@ public class Example {
                             if (part.length() == 0) continue;
 //                            System.out.println(part);
                             //if (part.replaceAll("\\s+", " ") == "-1") {
-                            board[i][j] = part.charAt(0);
-//                            if (part.charAt(0) == '-') {
-//                                board[i][j] = '0';
-//                            }
-//                            else {
-//                                board[i][j] = adjustChar(part.charAt(0));
-//                            }
+//                            board[i][j] = part.charAt(0);
+                            if (part.charAt(0) == '-') {
+                                board[i][j] = '0';
+                            }
+                            else {
+                                board[i][j] = adjustChar(part.charAt(0));
+                            }
                             j++;
                         }
                         i++;

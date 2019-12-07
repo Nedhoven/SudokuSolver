@@ -33,13 +33,13 @@ public class Main {
     }
     
     public static char[][] getBoard(String filename) {
-        Example ex = new Example(25);
+        Example ex = new Example(16);
         return ex.getGrid(filename);
     }
     
     public static char[][] calculate(char[][] board, boolean useOptimized) {
         int n = board.length;
-        Solver s = new Solver(25);
+        Solver s = new Solver(16);
         show(board);
         char[][] ans = s.solveSudoku(board);
         if (ans == null) {

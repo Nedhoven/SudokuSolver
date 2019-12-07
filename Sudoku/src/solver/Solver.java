@@ -23,7 +23,7 @@ public class Solver {
     private static final int DEFAULT = 0;
     private static final int SECOND = 1;
 
-    private final int varmode = SECOND;
+    private final int varmode = DEFAULT;
 
     // 2D ArrayList whose entry at each cell is the domain of the cell, itself an ArrayList of Integers
     private ArrayList<ArrayList<ArrayList<Integer>>> domain;
@@ -59,6 +59,10 @@ public class Solver {
         return num < 9 ? (char) (num + '1') : (char) (num + 'A' - 9);
     }
 
+
+
+
+    ///////// DOMAIN MANAGEMENT METHODS ///////////
     private int[] setDomain(int i, int j, ArrayList<Integer> nums) {
         int[] change = new int[4];
         change[0] = i;
@@ -101,28 +105,7 @@ public class Solver {
         sizeQueue.add(e);
         return change;
     }
-//
-//    private int[] setDomain(int i, int j, ArrayList<Integer> nums) {
-//        int[] change = new int[4];
-//        change[0] = i;
-//        change[1] = j;
-//        change[2] = domainSize.get(i).get(j).size;
-//        ArrayList<Integer> dom = domain.get(i).get(j);
-//        for (int num : nums) {
-//            dom.remove(dom.indexOf(num));
-//            dom.add(0, num);
-//        }
-//        int numsSize = nums.size();
-//        domainSize.get(i).get(j).size = numsSize;
-//        change[3] = numsSize;
-//
-//        DomainSizeEntry e =  domainSize.get(i).get(j);
-//        sizeQueue.remove(e);
-//        sizeQueue.add(e);
-//
-//        places.updateFromDomainChange(i, j, change[2], change[3]);
-//        return change;
-//    }
+
 
     private boolean isInDomain(int r, int c, int num) {
         ArrayList<Integer> dom = domain.get(r).get(c);
@@ -162,6 +145,61 @@ public class Solver {
         return domainChange;
     }
 
+    private ArrayList<Integer> getDomainVals(int r, int c) {
+        ArrayList<Integer> vals = new ArrayList<Integer>();
+        int domSize = domainSize.get(r).get(c).size;
+        for (int i = 0; i < domSize; i++) {
+            vals.add(domain.get(r).get(c).get(i));
+        }
+        return vals;
+    }
+
+    private PruneResult pruneDomains(int r, int c, int num) {
+        boolean hasZero = false;
+
+        int row = r;
+        int col = c;
+        int box = getBox(r, c);
+
+        Set<int[]> domainChanges = new HashSet<int[]>();
+
+        for (int j = 0; j < size; j++) {
+            if (j == c) continue;
+            if (grid[r][j] != empty) continue;
+            int[] domainChange = removeFromDomain(row, j, num);
+            if (domainChange != null) {
+                if (domainChange[3] == 0) {
+                    hasZero = true;
+                }
+                domainChanges.add(domainChange);
+            }
+        }
+        for (int i = 0; i < size; i++) {
+            if (i == r) continue;
+            if (grid[i][c] != empty) continue;
+            int[] domainChange = removeFromDomain(i, col, num);
+            if (domainChange != null) {
+                if (domainChange[3] == 0) {
+                    hasZero = true;
+                }
+                domainChanges.add(domainChange);
+            }
+        }
+        for (int[] pos : getBoxPositions(box)) {
+            if (pos[0] == r && pos[1] == c) continue;
+            if (grid[pos[0]][pos[1]] != empty) continue;
+            int[] domainChange = removeFromDomain(pos[0], pos[1], num);
+            if (domainChange != null) {
+                if (domainChange[3] == 0) {
+                    hasZero = true;
+                }
+                domainChanges.add(domainChange);
+            }
+        }
+        return new PruneResult(domainChanges, hasZero);
+    }
+
+    ////////// HISTORY MANAGEMENT METHODS /////////
     private boolean pushGrid(int r, int c, char cc, int currValI, ArrayList<Integer> vals) {
         boolean pruneDeadend = false;
         int num = getNum(cc);
@@ -518,64 +556,8 @@ public class Solver {
         return positions;
     }
 
-    private PruneResult pruneDomains(int r, int c, int num) {
-        boolean hasZero = false;
 
-        int row = r;
-        int col = c;
-        int box = getBox(r, c);
-
-        Set<int[]> domainChanges = new HashSet<int[]>();
-
-        for (int j = 0; j < size; j++) {
-            if (j == c) continue;
-            if (grid[r][j] != empty) continue;
-            int[] domainChange = removeFromDomain(row, j, num);
-            if (domainChange != null) {
-                if (domainChange[3] == 0) {
-                    hasZero = true;
-                }
-                domainChanges.add(domainChange);
-            }
-        }
-        for (int i = 0; i < size; i++) {
-            if (i == r) continue;
-            if (grid[i][c] != empty) continue;
-            int[] domainChange = removeFromDomain(i, col, num);
-            if (domainChange != null) {
-                if (domainChange[3] == 0) {
-                    hasZero = true;
-                }
-                domainChanges.add(domainChange);
-            }
-        }
-        for (int[] pos : getBoxPositions(box)) {
-            if (pos[0] == r && pos[1] == c) continue;
-            if (grid[pos[0]][pos[1]] != empty) continue;
-            int[] domainChange = removeFromDomain(pos[0], pos[1], num);
-            if (domainChange != null) {
-                if (domainChange[3] == 0) {
-                    hasZero = true;
-                }
-                domainChanges.add(domainChange);
-            }
-        }
-        return new PruneResult(domainChanges, hasZero);
-    }
-
-    private boolean isFull(char[][] currGrid) {
-        return !sizeQueue.peek().isEmpty;
-    }
-
-    private ArrayList<Integer> getDomainVals(int r, int c) {
-        ArrayList<Integer> vals = new ArrayList<Integer>();
-        int domSize = domainSize.get(r).get(c).size;
-        for (int i = 0; i < domSize; i++) {
-            vals.add(domain.get(r).get(c).get(i));
-        }
-        return vals;
-    }
-
+    ///////// LOGGING CODE ///////////
     private void logIteration(int iterations, int depth, char[][] grid) {
         System.out.println("ITERATIONS : " + String.valueOf(iterations));
         System.out.println("DEPTH " + String.valueOf(depth));
@@ -593,6 +575,9 @@ public class Solver {
         }
     }
 
+
+
+    ///////// MAIN SEARCH METHODS /////////
     private char[][] dfs() {
         int depth = 1; // for diagnostic purposes, keep track of depth
         int currValI = 0; // index into the arraylist of values for the current cell
@@ -693,4 +678,10 @@ public class Solver {
         System.out.println("DEPTH: " + maxDepth);
         return resGrid;
     }
+
+
+    private boolean isFull(char[][] currGrid) {
+        return !sizeQueue.peek().isEmpty;
+    }
+
 }
