@@ -6,7 +6,7 @@ import java.util.Arrays;
 
 public class Main {
     private static int N;
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         boolean runFlag = true;
         //runTest();
         boolean useOptimized;
@@ -24,21 +24,16 @@ public class Main {
             N = Integer.valueOf(args[2]);
             IO io = new IO(args[0], args[1], N);
             //char[][] board = getBoard(filename);
-            try {
-                char[][] board = io.readChar("");
-                double startTime = System.nanoTime();
-                char[][] ans = calculate(board, useOptimized);
-                double endTime = System.nanoTime();
-                double time = (endTime - startTime) / 1000;
-                System.out.println("running time: " + time + " us!");
-                System.out.println();
-                System.out.println("answer:");
-                show(ans);
-                io.write(ans, args[1]);
-            }
-            catch (IOException e) {
-                System.err.println("Problem reading/writing board");
-            }
+            char[][] board = io.readChar("");
+            double startTime = System.nanoTime();
+            char[][] ans = calculate(board, useOptimized);
+            double endTime = System.nanoTime();
+            double time = (endTime - startTime) / 1000;
+            System.out.println("running time: " + time + " us!");
+            System.out.println();
+            System.out.println("answer:");
+            show(ans);
+            io.writeSerial(ans, "");
         }
     }
     
