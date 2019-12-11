@@ -1,10 +1,11 @@
 
 package solver;
 
+import java.io.IOException;
 import java.util.Arrays;
 
 public class Main {
-    
+    private static int N;
     public static void main(String[] args) {
         boolean runFlag = true;
         //runTest();
@@ -17,29 +18,38 @@ public class Main {
         }
         if (runFlag) {
             String filename = null;
-            if (args.length >= 2) {
-                filename = args[1];
+            if (args.length < 3) {
+                System.err.println("Expected three arguments: input file, output file, and N (e.g. 9, 16, or 25)");
             }
-            char[][] board = getBoard(filename);
-            double startTime = System.nanoTime();
-            char[][] ans = calculate(board, useOptimized);
-            double endTime = System.nanoTime();
-            double time = (endTime - startTime) / 1000;
-            System.out.println("running time: " + time + " us!");
-            System.out.println();
-            System.out.println("answer:");
-            show(ans);
+            N = Integer.valueOf(args[2]);
+            IO io = new IO(args[0], args[1], N);
+            //char[][] board = getBoard(filename);
+            try {
+                char[][] board = io.readChar("");
+                double startTime = System.nanoTime();
+                char[][] ans = calculate(board, useOptimized);
+                double endTime = System.nanoTime();
+                double time = (endTime - startTime) / 1000;
+                System.out.println("running time: " + time + " us!");
+                System.out.println();
+                System.out.println("answer:");
+                show(ans);
+                io.write(ans, args[1]);
+            }
+            catch (IOException e) {
+                System.err.println("Problem reading/writing board");
+            }
         }
     }
     
     public static char[][] getBoard(String filename) {
-        Example ex = new Example(16);
+        Example ex = new Example(N);
         return ex.getGrid(filename);
     }
     
     public static char[][] calculate(char[][] board, boolean useOptimized) {
         int n = board.length;
-        Solver s = new Solver(16);
+        Solver s = new Solver(N);
         show(board);
         char[][] ans = s.solveSudoku(board);
         if (ans == null) {

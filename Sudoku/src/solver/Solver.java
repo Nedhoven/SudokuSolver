@@ -24,7 +24,7 @@ public class Solver {
     private static final int SECOND = 1;
 
     ///// SET THIS TO `DEFAULT` FOR THE DEFAULT STRATEGY, OR `SECOND` FOR THE SECOND STRATEGY.
-    private final int varmode = SECOND;
+    private final int varmode = DEFAULT;
 
     // A stack to keep track of the current path in the search; each entry tracks:
     //   the current cell,
