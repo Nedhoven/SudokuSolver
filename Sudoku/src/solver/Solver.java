@@ -21,11 +21,11 @@ public class Solver {
     private final Integer size; // size = N for an NxN grid
     private final Integer root; // sqrt(size)
     private final char empty = '0'; // character representing an empty cell
-    private static final int DEFAULT = 0;
-    private static final int SECOND = 1;
+    public static final int DEFAULT = 0;
+    public static final int SECOND = 1;
 
     ///// SET THIS TO `DEFAULT` FOR THE DEFAULT STRATEGY, OR `SECOND` FOR THE SECOND STRATEGY.
-    private final int varmode = DEFAULT;
+    private int varmode;
 
     // A stack to keep track of the current path in the search; each entry tracks:
     //   the current cell,
@@ -217,14 +217,15 @@ public class Solver {
     }
 
     //// CONSTRUCTOR, INITIALIZATION /////
-    public Solver(int n) {
+    public Solver(int n, int varmode) {
+        this.varmode = varmode;
         size = n;
         root = (int) Math.sqrt(n);
 
-        if (varmode == SECOND) {
+        if (this.varmode == SECOND) {
             places = new Places(size);
         }
-        domains = new Domains(size, root, varmode, places);
+        domains = new Domains(size, root, this.varmode, places);
         history = new Stack<Entry>();
     }
 
