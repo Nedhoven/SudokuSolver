@@ -25,6 +25,7 @@ public class Main {
             IO io = new IO(args[0], args[1], N);
             //char[][] board = getBoard(filename);
             char[][] board = io.readChar("");
+            show(board);
             double startTime = System.nanoTime();
             char[][] ans = calculate(board, useOptimized);
             double endTime = System.nanoTime();
@@ -32,7 +33,9 @@ public class Main {
             System.out.println("running time: " + time + " us!");
             System.out.println();
             System.out.println("answer:");
-            show(ans);
+            if (ans != null) {
+                show(ans);
+            }
             io.writeSerial(ans, "");
         }
     }
@@ -45,11 +48,9 @@ public class Main {
     public static char[][] calculate(char[][] board, boolean useOptimized) {
         int n = board.length;
         Solver s = new Solver(N);
-        show(board);
         char[][] ans = s.solveSudoku(board);
         if (ans == null) {
-            System.err.println("SUDOKU UNSOLVEABLE!");
-            System.exit(1);
+            System.out.println("SUDOKU UNSOLVABLE!");
         }
         return ans;
     }

@@ -16,6 +16,7 @@ import java.lang.Thread;
 
 public class Solver {
 
+    private final boolean DEBUG = false;
     private char[][] grid;
     private final Integer size; // size = N for an NxN grid
     private final Integer root; // sqrt(size)
@@ -69,7 +70,9 @@ public class Solver {
                 dom = domains.getDomain(r, c);
             }
             if (domains.getSize(r, c) == 0) {
-                System.err.println("The algorithm selected a row and column with zero-size domain.");
+                if (DEBUG) {
+                    System.err.println("The algorithm selected a row and column with zero-size domain.");
+                }
             }
 
             // For logging purposes
@@ -130,26 +133,28 @@ public class Solver {
 
     public char[][] solveSudoku(char[][] board) {
         grid = board;
-        System.out.println("Initializing");
+        if (DEBUG) {
+            System.out.println("Initializing");
+        }
         double startTime = System.nanoTime();
         if (!init()) {
             return null;
         }
         double endTime = System.nanoTime();
         double time = (endTime - startTime) / 1000;
-        System.out.println("init time: " + time + " us!");
-        System.out.println();
-
+        if (DEBUG) {
+            System.out.println("init time: " + time + " us!");
+            System.out.println();
+        }
         if (isFull(grid)) {
             return grid;
         }
-        for (int i = 0; i < history.size(); i++) {
-            Entry hist = history.get(i);
-        }
 
         char[][] resGrid = dfs();
-        System.out.println("Iterations: " + iterations);
-        System.out.println("DEPTH: " + maxDepth);
+//        if (DEBUG) {
+            System.out.println("Iterations: " + iterations);
+            System.out.println("DEPTH: " + maxDepth);
+        //}
         return resGrid;
     }
 
@@ -230,7 +235,9 @@ public class Solver {
             return false;
         }
         if (!res) {
-            System.out.println("BAD");
+            if (DEBUG) {
+                System.out.println("BAD");
+            }
         }
         if (!ac3()) {
             return false;
@@ -250,7 +257,6 @@ public class Solver {
         for (int j = 0; j < size; j++) {
             if (j == c) continue;
             if (currGrid[r][j] == cc) {
-                System.out.println("BAD ROW");
                 return false;
             }
         }
@@ -261,7 +267,6 @@ public class Solver {
         for (int i = 0; i < size; i++) {
             if (i == r) continue;
             if (currGrid[i][c] == cc) {
-                System.out.println("BAD COL");
                 return false;
             }
         }
@@ -273,7 +278,6 @@ public class Solver {
         for (int[] pos : getBoxPositions(box)) {
             if (pos[0] == r && pos[1] == c) continue;
             if (currGrid[pos[0]][pos[1]] ==  cc) {
-                System.out.println("BAD BOX");
                 return false;
             }
         }
@@ -315,13 +319,11 @@ public class Solver {
             int col = pos[1];
 
 
-            if (domains.getSize(row, col) > 1) {
-                System.out.println("UH OH");
-            }
-
             if (domains.getSize(row, col) == 0) {
-                show(grid);
-                System.out.println(" BAD " + String.valueOf(row) + " " + String.valueOf(col));
+                if (DEBUG) {
+                    show(grid);
+                    System.out.println(" BAD " + String.valueOf(row) + " " + String.valueOf(col));
+                }
                 return false;
             }
             for (int domNum : domains.getDomainVals(row, col)) {
@@ -332,9 +334,6 @@ public class Solver {
                     }
                 }
 
-                if (getChar(domNum) == '0') {
-                    System.out.println("WHOOPS");
-                }
             }
             int num = getNum(grid[pos[0]][pos[1]]);
 
@@ -407,11 +406,7 @@ public class Solver {
         minpos[1] = e.c;
         if (varmode == SECOND && e.size > 1) {
             PlacesSizeEntry pe = places.peek();
-            if (pe.isFilledIn) {
-                System.out.println("OOPS V BAD");
-            }
             if (pe.size == 1) {
-                //System.out.println("USING SIZE HEURISTIC!");
                 return places.getPosFromPlaces(pe, grid, size, domains);
             }
         }
@@ -431,10 +426,13 @@ public class Solver {
 
     ///////// LOGGING CODE ///////////
     private void logIteration(int iterations, int depth, char[][] grid) {
-        System.out.println("ITERATIONS : " + String.valueOf(iterations));
-        System.out.println("DEPTH " + String.valueOf(depth));
-        show(grid);
-        System.out.println();
+        if (DEBUG) {
+            System.out.println("ITERATIONS : " + String.valueOf(iterations));
+
+            System.out.println("DEPTH " + String.valueOf(depth));
+            show(grid);
+            System.out.println();
+        }
     }
 
     private void updateDepthForLogging(int depth) {

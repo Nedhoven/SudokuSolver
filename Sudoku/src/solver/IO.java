@@ -108,11 +108,16 @@ public class IO {
     public void writeSerial(char[][] board, String name) throws IOException {
         File file = new File(out + name);
         BufferedWriter bw = new BufferedWriter(new FileWriter(file, true));
-        for (char[] arr : board) {
-            int[] temp = convert(arr);
-            for (int num : temp) {
-                String txt = num + " ";
-                bw.append(txt);
+        if (board == null) {
+            bw.append("SUDOKU UNSOLVABLE");
+        }
+        else {
+            for (char[] arr : board) {
+                int[] temp = convert(arr);
+                for (int num : temp) {
+                    String txt = num + " ";
+                    bw.append(txt);
+                }
             }
         }
         bw.close();
@@ -121,10 +126,15 @@ public class IO {
     public void writeSerial(int[][] board, String name) throws IOException {
         File file = new File(out + name);
         BufferedWriter bw = new BufferedWriter(new FileWriter(file, true));
-        for (int[] arr : board) {
-            for (int num : arr) {
-                String txt = num + " ";
-                bw.append(txt);
+        if (board == null) {
+            bw.append("SUDOKU UNSOLVABLE");
+        }
+        else {
+            for (int[] arr : board) {
+                for (int num : arr) {
+                    String txt = num + " ";
+                    bw.append(txt);
+                }
             }
         }
         bw.close();

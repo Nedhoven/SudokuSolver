@@ -16,9 +16,5 @@ public class PlacesSizeEntry extends SizeEntry {
         this.size = esize;
         this.isFilledIn = false;
         numCreated++;
-        if (numCreated > 3*625) {
-            System.out.println("TOO MANY");
-        }
-
     }
 }

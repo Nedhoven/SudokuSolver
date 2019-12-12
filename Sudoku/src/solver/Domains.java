@@ -93,7 +93,6 @@ public class Domains {
             for (int j = 0; j < size; j++) {
                 if (grid[i][j] != empty) {
                     if (pruneDomains(i, j, Util.getNum(grid[i][j]), grid).hasZero) {
-                        System.out.println("BADUHOH");
                         return false;
                     }
                 }
