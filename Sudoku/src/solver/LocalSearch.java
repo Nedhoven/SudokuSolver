@@ -17,6 +17,8 @@ public class LocalSearch implements SolverInterface {
 
     private int[] lastChanged;
 
+    private double thresh = 0;
+
     public LocalSearch(int n) {
         size = n;
         root = (int)(Math.sqrt(size));
@@ -112,33 +114,25 @@ public class LocalSearch implements SolverInterface {
     }
 
     private boolean localSearch() {
-        double prob = Math.random();
         int[] pos = new int[2];
-        if (prob < 0.01) {
-            pos[0] = (int)(Math.random() * size);
-            pos[1] = (int)(Math.random() * size);
+        do {
+            pos[0] = (int) (Math.random() * size);
+            pos[1] = (int) (Math.random() * size);
+        } while (reserved[pos[0]][pos[1]]);
+
+        int val = (int)(Math.random() * size);
+        if (getNumConflictsForPos(pos[0], pos[1], val) < getNumConflictsForPos(pos[0], pos[1], getNum(grid[0][1]))) {
+            grid[pos[0]][pos[1]] = getChar(val);
         }
         else {
-            pos = getMostConflictedPos();
+            double prob = Math.random();
+            if (prob < thresh) {
+                grid[pos[0]][pos[1]] = getChar(val);
+            }
         }
-        prob = Math.random();
-        int val;
-        if (prob < 0.01) {
-            val = (int)(Math.random() * size);
-        }
-        else {
-            val = getLeastConflictedValForPos(pos[0], pos[1]);
-        }
-        tabu.addLast(pos[0] * size + pos[1]);
-        if (tabu.size() > 5) {
-            tabu.removeFirst();
-        }
-        grid[pos[0]][pos[1]] = getChar(val);
-        lastChanged[0] = pos[0];
-        lastChanged[1] = pos[1];
         int numConflicts = getNumConflicts();
         if (numConflicts > 0) {
-            if (calls % 10000 == 0) {
+            if (calls % 100000 == 0) {
                 System.out.println(String.valueOf(numConflicts));
             }
             return false;
@@ -146,6 +140,43 @@ public class LocalSearch implements SolverInterface {
         else {
             return true;
         }
+        //if (getNumConflictsForPos())
+//        double prob = Math.random();
+//        int[] pos = new int[2];
+//        if (prob < thresh) {
+//            do {
+//                pos[0] = (int) (Math.random() * size);
+//                pos[1] = (int) (Math.random() * size);
+//            } while (reserved[pos[0]][pos[1]]);
+//        }
+//        else {
+//            pos = getMostConflictedPos();
+//        }
+//        prob = Math.random();
+//        int val;
+//        if (prob < thresh) {
+//            val = (int)(Math.random() * size);
+//        }
+//        else {
+//            val = getLeastConflictedValForPos(pos[0], pos[1]);
+//        }
+//        tabu.addLast(pos[0] * size + pos[1]);
+//        if (tabu.size() > 5) {
+//            tabu.removeFirst();
+//        }
+//        grid[pos[0]][pos[1]] = getChar(val);
+//        lastChanged[0] = pos[0];
+//        lastChanged[1] = pos[1];
+//        int numConflicts = getNumConflicts();
+//        if (numConflicts > 0) {
+//            if (calls % 100000 == 0) {
+//                System.out.println(String.valueOf(numConflicts));
+//            }
+//            return false;
+//        }
+//        else {
+//            return true;
+//        }
     }
 
     public void show(char[][] board) {
@@ -173,40 +204,44 @@ public class LocalSearch implements SolverInterface {
         return num < 9 ? (char) (num + '1') : (char) (num + 'A' - 9);
     }
 
-    public boolean solveSudoku(char[][] board) {
-        grid = board;
-        System.out.println("Initializing");
-        double startTime = System.nanoTime();
-//        if (!init()) {
-//            return false;
+    public char[][] solveSudoku(char[][] board) {
+        return board;
+//        grid = board;
+//        System.out.println("Initializing");
+//        double startTime = System.nanoTime();
+////        if (!init()) {
+////            return false;
+////        }
+//        init();
+//        double endTime = System.nanoTime();
+//        double time = (endTime - startTime) / 1000;
+//        System.out.println("init time: " + time + " us!");
+//        System.out.println();
+//
+//        while(!localSearch()) {
+//            if (calls % 100000 == 0) {
+//                show(grid);
+//                thresh = thresh * 999/1000;
+//                        //1.0/100000000.0;
+//                System.out.println(String.valueOf(thresh));
+//            }
+//            calls++;
+//            if (calls > 100000000) {
+//                return false;
+//            }
 //        }
-        init();
-        double endTime = System.nanoTime();
-        double time = (endTime - startTime) / 1000;
-        System.out.println("init time: " + time + " us!");
-        System.out.println();
-
-        while(!localSearch()) {
-            if (calls % 10000 == 0) {
-                show(grid);
-            }
-            calls++;
-            if (calls > 1000000) {
-                return false;
-            }
-        }
-        return true;
-
-        //System.out.println("row: " + row);
-        //System.out.println("col: " + col);
-        //System.out.println("box: " + box);
-        //System.out.println("empty cells at each row: " + emptyRow);
-        //System.out.println("empty cells at each col: " + emptyCol);
-        //int[] pos = getIndex();
-        //boolean ret = dfs(pos[0], pos[1], 0);
-        //System.out.println("recursive calls: " + reccalls.toString());
-        //System.out.println("recursive depth: " + maxRecdepth.toString());
-
+//        return true;
+//
+//        //System.out.println("row: " + row);
+//        //System.out.println("col: " + col);
+//        //System.out.println("box: " + box);
+//        //System.out.println("empty cells at each row: " + emptyRow);
+//        //System.out.println("empty cells at each col: " + emptyCol);
+//        //int[] pos = getIndex();
+//        //boolean ret = dfs(pos[0], pos[1], 0);
+//        //System.out.println("recursive calls: " + reccalls.toString());
+//        //System.out.println("recursive depth: " + maxRecdepth.toString());
+//
     }
 
 }

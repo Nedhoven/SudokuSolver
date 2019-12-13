@@ -239,22 +239,23 @@ public class Solver implements SolverInterface {
         return false;
     }
     
-    public boolean solveSudoku(char[][] board) {
-        grid = board;
-        flag = false;
-        numRow = new int[size];
-        row = new boolean[size][size];
-        col = new boolean[size][size];
-        box = new boolean[size][size];
-        init();
-        if (flag) {
-            return false;
-        }
-        int r = getRow();
-        boolean ret = dfs(r, 0, 0);
-        System.out.println("Recursive calls: " + reccalls.toString());
-        System.out.println("Recursive depth: " + maxRecdepth.toString());
-        return ret;
+    public char[][] solveSudoku(char[][] board) {
+        return board;
+//        grid = board;
+//        flag = false;
+//        numRow = new int[size];
+//        row = new boolean[size][size];
+//        col = new boolean[size][size];
+//        box = new boolean[size][size];
+//        init();
+//        if (flag) {
+//            return false;
+//        }
+//        int r = getRow();
+//        boolean ret = dfs(r, 0, 0);
+//        System.out.println("Recursive calls: " + reccalls.toString());
+//        System.out.println("Recursive depth: " + maxRecdepth.toString());
+//        return ret;
     }
     
 }
